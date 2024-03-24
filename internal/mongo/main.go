@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"os"
 	"slices"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,7 +13,7 @@ import (
 var client *mongo.Client
 
 func init() {
-	uri := "mongodb://192.168.63.29:27017/stuffai"
+	uri := os.Getenv("MONGO_URI")
 
 	ctx := context.Background()
 	var err error
