@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/stuff-ai/api/pkg/types"
 )
@@ -42,4 +43,21 @@ func FindJobByID(ctx context.Context, jobID string) (*types.Job, error) {
 		return nil, err
 	}
 	return job, nil
+}
+
+func FindAllJobBuckets(ctx context.Context) ([]types.Bucket, error) {
+	opts := options.Find().SetProjection(bson.D{{"bucket", 1}})
+	cur, err := jobsCollection().Find(ctx, bson.D{{"state", 1}}, opts)
+	if err != nil {
+		return nil, err
+	}
+	var jobs []*types.Job
+	if err = cur.All(ctx, &jobs); err != nil {
+		return nil, err
+	}
+	buckets := make([]types.Bucket, len(jobs))
+	for i, jobs := range jobs {
+		buckets[i] = jobs.Bucket
+	}
+	return buckets, nil
 }

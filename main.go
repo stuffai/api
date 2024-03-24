@@ -106,5 +106,18 @@ func getJobImageURL(c echo.Context) error {
 }
 
 func getFeed(c echo.Context) error {
-	return nil
+	ctx := context.Background()
+	buckets, err := mongo.FindAllJobBuckets(ctx)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	feed := make([]string, len(buckets))
+	for i, buc := range buckets {
+		signedURL, err := bucket.SignURL(ctx, buc.Name, buc.Key)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		feed[i] = signedURL.String()
+	}
+	return c.JSON(http.StatusOK, feed)
 }
