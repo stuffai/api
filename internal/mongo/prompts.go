@@ -16,7 +16,7 @@ func promptsCollection() *mongo.Collection {
 	return db().Collection("prompts")
 }
 
-func AddPrompt(ctx context.Context, prompt *types.Prompt) (string, error) {
+func InsertPrompt(ctx context.Context, prompt *types.Prompt) (string, error) {
 	result, err := promptsCollection().InsertOne(
 		ctx,
 		bson.D{{"title", prompt.Title}, {"prompt", prompt.Prompt}},

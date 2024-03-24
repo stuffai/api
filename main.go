@@ -34,17 +34,28 @@ func main() {
 // Handler
 func generate(c echo.Context) error {
 	req := new(types.Prompt)
+
+	// Parse req.
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	id, err := mongo.AddPrompt(context.Background(), req)
+
+	// Insert into DB.
+	ctx := context.Background()
+	promptID, err := mongo.InsertPrompt(ctx, req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	if err := rmq.Publish(context.Background(), []byte(id)); err != nil {
+	jobID, err := mongo.InsertJob(ctx, promptID)
+	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	return c.String(http.StatusOK, "OK")
+
+	// Publish to queue.
+	if err := rmq.Publish(context.Background(), []byte(jobID)); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{"jobID": jobID})
 }
 
 func postPrompts(c echo.Context) error {
@@ -52,7 +63,7 @@ func postPrompts(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	id, err := mongo.AddPrompt(context.Background(), req)
+	id, err := mongo.InsertPrompt(context.Background(), req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
