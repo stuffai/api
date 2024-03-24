@@ -22,3 +22,11 @@ type Prompt struct {
 	Title  string `json:"title" bson:"title"`
 	Prompt string `json:"prompt" bson:"prompt"`
 }
+
+type Image struct {
+	Title     string    `json:"title"`
+	Prompt    string    `json:"prompt"`
+	DTCreated time.Time `json:"dtCreated"`
+	Bucket    Bucket    `json:"-"`
+	URL       string    `json:"url"`
+}
