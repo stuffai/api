@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -23,7 +24,13 @@ func InsertJob(ctx context.Context, promptID string) (string, error) {
 
 	result, err := jobsCollection().InsertOne(
 		ctx,
-		bson.D{{"promptID", promptOID}, {"state", 0}},
+		bson.D{
+			{"promptID", promptOID},
+			{"state", 0},
+			{"dtCreated", time.Now()},
+			{"dtModified", nil},
+			{"dtDeleted", nil},
+		},
 	)
 	if err != nil {
 		return "", err
