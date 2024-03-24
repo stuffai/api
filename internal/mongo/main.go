@@ -6,6 +6,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/stuff-ai/api/pkg/types"
 )
 
 var client *mongo.Client
@@ -30,10 +32,10 @@ func promptsCollection() *mongo.Collection {
 	return db().Collection("prompts")
 }
 
-func AddPrompt(ctx context.Context, title, prompt string) error {
+func AddPrompt(ctx context.Context, prompt *types.Prompt) error {
 	_, err := promptsCollection().InsertOne(
 		ctx,
-		bson.D{{"title", title}, {"prompt", prompt}},
+		bson.D{{"title", prompt.Title}, {"prompt", prompt.Prompt}},
 	)
 	return err
 }

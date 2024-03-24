@@ -10,6 +10,7 @@ import (
 
 	"github.com/stuff-ai/api/internal/mongo"
 	"github.com/stuff-ai/api/internal/rmq"
+	"github.com/stuff-ai/api/pkg/types"
 )
 
 func main() {
@@ -30,14 +31,9 @@ func main() {
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
-type Request struct {
-	Title  string `json:"title"`
-	Prompt string `json:"prompt"`
-}
-
 // Handler
 func generate(c echo.Context) error {
-	req := new(Request)
+	req := new(types.Prompt)
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -52,11 +48,11 @@ func generate(c echo.Context) error {
 }
 
 func postPrompts(c echo.Context) error {
-	req := new(Request)
+	req := new(types.Prompt)
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	if err := mongo.AddPrompt(context.Background(), req.Title, req.Prompt); err != nil {
+	if err := mongo.AddPrompt(context.Background(), req); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.String(http.StatusOK, "OK")
