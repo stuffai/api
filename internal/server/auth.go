@@ -85,3 +85,23 @@ func signup(c echo.Context) error {
 		"user_id": userID,
 	})
 }
+
+// jwtMiddleware validates JWT tokens for protected routes
+func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		tokenString := c.Request().Header.Get("Authorization")
+		claims := &JWTClaims{}
+
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+
+		if err != nil || !token.Valid {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
+		}
+
+		// Token is valid, you can proceed with the request and also use the claims
+		// For example, to get the username: claims.Username
+		return next(c)
+	}
+}
