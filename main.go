@@ -24,9 +24,10 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Routes
-	e.POST("/generate", generate)
+	e.GET("/feed", getFeed)
 	e.POST("/prompts", postPrompts)
 	e.GET("/prompts/rand", getPromptRand)
+	e.POST("/jobs", postJobs)
 	e.GET("/jobs/:id", getJobByID)
 	e.GET("/jobs/:id/img", getJobImageURL)
 
@@ -35,7 +36,7 @@ func main() {
 }
 
 // Handler
-func generate(c echo.Context) error {
+func postJobs(c echo.Context) error {
 	req := new(types.Prompt)
 
 	// Parse req.
@@ -102,4 +103,8 @@ func getJobImageURL(c echo.Context) error {
 	}
 
 	return c.Redirect(http.StatusTemporaryRedirect, signedURL.String())
+}
+
+func getFeed(c echo.Context) error {
+	return nil
 }
