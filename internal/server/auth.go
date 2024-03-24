@@ -18,6 +18,25 @@ type JWTClaims struct {
 	jwt.StandardClaims
 }
 
+// GenerateToken creates and signs a new JWT token for a given username
+func generateToken(username string) (string, error) {
+	claims := JWTClaims{
+		Username: username,
+		StandardClaims: jwt.StandardClaims{
+			// Set the expiration time
+			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
 // LoginRequest is the request body for login
 type LoginRequest struct {
 	Username string `json:"username"`
@@ -38,14 +57,7 @@ func login(c echo.Context) error {
 	}
 
 	// Create and sign the token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JWTClaims{
-		Username: user.Username,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
-		},
-	})
-
-	tokenString, err := token.SignedString(jwtKey)
+	tokenString, err := generateToken(user.Username)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not sign the token")
 	}
@@ -79,10 +91,17 @@ func signup(c echo.Context) error {
 
 	// Optionally, initiate the email verification process here
 
+	// Return signed token.
+	tokenString, err := generateToken(requestBody.Username)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Could not sign the token")
+	}
+
 	// Return success response
 	return c.JSON(http.StatusCreated, echo.Map{
 		"message": "User created successfully",
 		"user_id": userID,
+		"token":   tokenString,
 	})
 }
 
