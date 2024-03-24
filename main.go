@@ -55,7 +55,7 @@ func generate(c echo.Context) error {
 	if err := rmq.Publish(context.Background(), []byte(jobID)); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(http.StatusOK, map[string]interface{}{"jobID": jobID})
+	return c.JSON(http.StatusAccepted, map[string]interface{}{"jobID": jobID})
 }
 
 func postPrompts(c echo.Context) error {
