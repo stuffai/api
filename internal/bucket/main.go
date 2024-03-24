@@ -14,8 +14,8 @@ var client *minio.Client
 
 func init() {
 	endpoint := "192.168.63.29:9000"
-	accessKeyID := "WbBEXRI3np9gkiyoljLt"
-	secretAccessKey := "lXoXdE8TDaiSknmzlYXaJrP73Xo8xUvjINAeP4sL"
+	accessKeyID := "9b2yTqkrIBlf2TPHDL24"
+	secretAccessKey := "UX1fJraecnPD32W00mdpbFI5vi2MUzc6hn8lv7Jd"
 	useSSL := false
 
 	var err error
