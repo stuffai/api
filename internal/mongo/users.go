@@ -25,7 +25,7 @@ func InsertUser(ctx context.Context, username, email, password string) (string, 
 	if err != mongo.ErrNoDocuments {
 		if err == nil {
 			// A user with this email already exists
-			return "", errors.New("a user with this email or username already exists")
+			return "", errors.New("a user with this email already exists")
 		}
 		// Handle other potential errors from FindOne
 		return "", err
@@ -60,4 +60,22 @@ func InsertUser(ctx context.Context, username, email, password string) (string, 
 	}
 
 	return userID.Hex(), nil
+}
+
+// AuthenticateUser checks if a user exists with the given username and password
+func AuthenticateUser(username, password string) (*types.UserPrivate, error) {
+	collection := usersCollection() // Assume you have a function to get the users collection
+	var user types.UserPrivate
+	err := collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	// Compare the provided password with the stored hash
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+	if err != nil {
+		return nil, errors.New("invalid password")
+	}
+
+	return &user, nil
 }
