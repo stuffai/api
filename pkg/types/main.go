@@ -1,8 +1,14 @@
 package types
 
+type Bucket struct {
+	Name string `json:"bucket"`
+	Key  string `json:"key"`
+}
+
 type Job struct {
-	PromptID string `json:"promptID", bson:"promptID"`
+	PromptID string `json:"promptID"`
 	State    int    `json:"state"`
+	Bucket   Bucket `json:"-"`
 }
 
 type Prompt struct {

@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	"github.com/stuff-ai/api/internal/bucket"
 	"github.com/stuff-ai/api/internal/mongo"
 	"github.com/stuff-ai/api/internal/rmq"
 	"github.com/stuff-ai/api/pkg/types"
@@ -26,6 +27,8 @@ func main() {
 	e.POST("/generate", generate)
 	e.POST("/prompts", postPrompts)
 	e.GET("/prompts/rand", getPromptRand)
+	e.GET("/jobs/:id", getJobByID)
+	e.GET("/jobs/:id/img", getJobImageURL)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
@@ -76,4 +79,27 @@ func getPromptRand(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, prompt)
+}
+
+func getJobByID(c echo.Context) error {
+	ctx := context.Background()
+	prompt, err := mongo.FindJobByID(ctx, c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, prompt)
+}
+
+func getJobImageURL(c echo.Context) error {
+	ctx := context.Background()
+	prompt, err := mongo.FindJobByID(ctx, c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	signedURL, err := bucket.SignURL(ctx, prompt.Bucket.Name, prompt.Bucket.Key)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.Redirect(http.StatusTemporaryRedirect, signedURL.String())
 }
