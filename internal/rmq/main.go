@@ -35,10 +35,7 @@ func Publish(ctx context.Context, b []byte) error {
 		q.Name,
 		false,
 		false,
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body: b,
-		},
+		amqp.Publishing{Body: b},
 	); err != nil {
 		return err
 	}
