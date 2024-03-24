@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	"github.com/stuff-ai/api/internal/mongo"
 	"github.com/stuff-ai/api/internal/rmq"
 )
 
@@ -23,13 +24,14 @@ func main() {
 
 	// Routes
 	e.POST("/generate", generate)
+	e.POST("/prompts", postPrompts)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
 type Request struct {
-	Title string `json:"title"`
+	Title  string `json:"title"`
 	Prompt string `json:"prompt"`
 }
 
@@ -46,5 +48,16 @@ func generate(c echo.Context) error {
 	if err := rmq.Publish(context.Background(), b); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-  	return c.String(http.StatusOK, "OK")
+	return c.String(http.StatusOK, "OK")
+}
+
+func postPrompts(c echo.Context) error {
+	req := new(Request)
+	if err := c.Bind(req); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	if err := mongo.AddPrompt(context.Background(), req.Title, req.Prompt); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return c.String(http.StatusOK, "OK")
 }
