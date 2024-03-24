@@ -21,7 +21,7 @@ var viewProjection = mongo.Pipeline{
 	bson.D{{"$project", bson.D{
 		{"state", 1},
 		{"bucket", 1},
-		{"dtCreated", 1},
+		{"dtModified", 1},
 		{"title", "$promptDocs.title"},
 		{"prompt", "$promptDocs.prompt"},
 	}}},
@@ -39,7 +39,7 @@ func imagesCollection() *mongo.Collection {
 }
 
 func FindImages(ctx context.Context) ([]*types.Image, error) {
-	cur, err := imagesCollection().Find(ctx, bson.D{{"state", 1}}, options.Find().SetSort(bson.D{{"dtCreated", -1}}))
+	cur, err := imagesCollection().Find(ctx, bson.D{{"state", 1}}, options.Find().SetSort(bson.D{{"dtModified", -1}}))
 	if err != nil {
 		return nil, err
 	}
