@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/stuff-ai/api/pkg/types"
 )
@@ -37,7 +38,7 @@ func imagesCollection() *mongo.Collection {
 }
 
 func FindImages(ctx context.Context) ([]*types.Image, error) {
-	cur, err := imagesCollection().Find(ctx, bson.D{})
+	cur, err := imagesCollection().Find(ctx, bson.D{}, options.Find().SetSort(bson.D{{"dtCreated", -1}}))
 	if err != nil {
 		return nil, err
 	}
