@@ -6,6 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/stuff-ai/api/pkg/types"
@@ -15,12 +16,15 @@ func promptsCollection() *mongo.Collection {
 	return db().Collection("prompts")
 }
 
-func AddPrompt(ctx context.Context, prompt *types.Prompt) error {
-	_, err := promptsCollection().InsertOne(
+func AddPrompt(ctx context.Context, prompt *types.Prompt) (string, error) {
+	result, err := promptsCollection().InsertOne(
 		ctx,
 		bson.D{{"title", prompt.Title}, {"prompt", prompt.Prompt}},
 	)
-	return err
+	if err != nil {
+		return "", err
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 func RandomPrompt(ctx context.Context) (*types.Prompt, error) {

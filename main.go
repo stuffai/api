@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -38,11 +37,11 @@ func generate(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	b, err := json.Marshal(req)
+	id, err := mongo.AddPrompt(context.Background(), req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	if err := rmq.Publish(context.Background(), b); err != nil {
+	if err := rmq.Publish(context.Background(), []byte(id)); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.String(http.StatusOK, "OK")
@@ -53,10 +52,11 @@ func postPrompts(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	if err := mongo.AddPrompt(context.Background(), req); err != nil {
+	id, err := mongo.AddPrompt(context.Background(), req)
+	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	return c.String(http.StatusOK, "OK")
+	return c.JSON(http.StatusOK, map[string]interface{}{"id": id})
 }
 
 func getPromptRand(c echo.Context) error {
