@@ -9,7 +9,7 @@ import (
 
 	"github.com/stuff-ai/api/internal/bucket"
 	"github.com/stuff-ai/api/internal/mongo"
-	"github.com/stuff-ai/api/internal/rmq"
+	"github.com/stuff-ai/api/internal/queue"
 	"github.com/stuff-ai/api/pkg/types"
 )
 
@@ -57,7 +57,7 @@ func postJobs(c echo.Context) error {
 	}
 
 	// Publish to queue.
-	if err := rmq.Publish(context.Background(), []byte(jobID)); err != nil {
+	if err := queue.Publish(context.Background(), []byte(jobID)); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusAccepted, map[string]interface{}{"jobID": jobID})
