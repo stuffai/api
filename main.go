@@ -26,6 +26,7 @@ func main() {
 	// Routes
 	e.POST("/generate", generate)
 	e.POST("/prompts", postPrompts)
+	e.GET("/prompts/rand", getPromptRand)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
@@ -56,4 +57,12 @@ func postPrompts(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.String(http.StatusOK, "OK")
+}
+
+func getPromptRand(c echo.Context) error {
+	prompt, err := mongo.RandomPrompt(context.Background())
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, prompt)
 }
