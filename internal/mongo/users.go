@@ -2,10 +2,12 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/stuff-ai/api/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
@@ -16,6 +18,19 @@ func usersCollection() *mongo.Collection {
 }
 
 func InsertUser(ctx context.Context, username, email, password string) (string, error) {
+	// First, check if a user with the same email already exists
+	var existingUser types.UserPrivate
+	collection := usersCollection()
+	err := collection.FindOne(ctx, bson.M{"$or": []bson.M{{"email": email}, {"username": username}}}).Decode(&existingUser)
+	if err != mongo.ErrNoDocuments {
+		if err == nil {
+			// A user with this email already exists
+			return "", errors.New("a user with this email or username already exists")
+		}
+		// Handle other potential errors from FindOne
+		return "", err
+	}
+
 	// Hash the password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -33,7 +48,6 @@ func InsertUser(ctx context.Context, username, email, password string) (string, 
 	}
 
 	// Insert the new user into the collection
-	collection := usersCollection()
 	result, err := collection.InsertOne(ctx, newUser)
 	if err != nil {
 		return "", fmt.Errorf("failed to insert user: %w", err)
