@@ -103,7 +103,7 @@ func getJobImageURL(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return c.Redirect(http.StatusTemporaryRedirect, signedURL.String())
+	return c.Redirect(http.StatusTemporaryRedirect, signedURL)
 }
 
 func getFeed(c echo.Context) error {
@@ -117,7 +117,7 @@ func getFeed(c echo.Context) error {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		img.URL = signedURL.String()
+		img.URL = signedURL
 	}
 	return c.JSON(http.StatusOK, feed)
 }

@@ -2,33 +2,41 @@ package bucket
 
 import (
 	"context"
-	"fmt"
-	"net/url"
+	"os"
 	"time"
 
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-var client *minio.Client
+var svc *s3.S3
 
 func init() {
-	endpoint := "192.168.63.29:9000"
-	accessKeyID := "9b2yTqkrIBlf2TPHDL24"
-	secretAccessKey := "UX1fJraecnPD32W00mdpbFI5vi2MUzc6hn8lv7Jd"
-	useSSL := false
+	endpoint := os.Getenv("GCS_URL")
+	accessKeyID := os.Getenv("GCS_ACCESS_KEY")
+	secretAccessKey := os.Getenv("GCS_SECRET_KEY")
 
-	var err error
-	if client, err = minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
-		Secure: useSSL,
-	}); err != nil {
-		panic("bucket.init: err: " + err.Error())
+	sess, err := session.NewSession(&aws.Config{
+		Region:      aws.String("auto"),
+		Endpoint:    aws.String(endpoint),
+		Credentials: credentials.NewStaticCredentials(accessKeyID, secretAccessKey, ""),
+	})
+	if err != nil {
+		panic(err)
 	}
+	svc = s3.New(sess)
 }
 
-func SignURL(ctx context.Context, bucket, key string) (*url.URL, error) {
-	reqParams := make(url.Values)
-	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", key))
-	return client.PresignedGetObject(ctx, bucket, key, time.Hour, reqParams)
+func SignURL(ctx context.Context, bucket, key string) (string, error) {
+	req, _ := svc.PutObjectRequest(&s3.PutObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	signedURL, err := req.Presign(24 * time.Hour)
+	if err != nil {
+		return "", err
+	}
+	return signedURL, nil
 }
