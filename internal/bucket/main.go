@@ -2,41 +2,64 @@ package bucket
 
 import (
 	"context"
-	"os"
+	"fmt"
+	"net/url"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"cloud.google.com/go/storage"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-var svc *s3.S3
+var (
+	gcsClient   *storage.Client
+	minioClient *minio.Client
+)
 
-func init() {
-	endpoint := os.Getenv("GCS_URL")
-	accessKeyID := os.Getenv("GCS_ACCESS_KEY")
-	secretAccessKey := os.Getenv("GCS_SECRET_KEY")
-
-	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String("auto"),
-		Endpoint:    aws.String(endpoint),
-		Credentials: credentials.NewStaticCredentials(accessKeyID, secretAccessKey, ""),
-	})
-	if err != nil {
-		panic(err)
+func signURLGCS(bucket, object string) (string, error) {
+	opts := &storage.SignedURLOptions{
+		Scheme:  storage.SigningSchemeV4,
+		Method:  "GET",
+		Expires: time.Now().Add(24 * time.Hour),
 	}
-	svc = s3.New(sess)
+
+	u, err := gcsClient.Bucket(bucket).SignedURL(object, opts)
+	if err != nil {
+		return "", fmt.Errorf("Bucket(%q).SignedURL: %w", bucket, err)
+	}
+	return u, nil
 }
 
-func SignURL(ctx context.Context, bucket, key string) (string, error) {
-	req, _ := svc.PutObjectRequest(&s3.PutObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
-	})
-	signedURL, err := req.Presign(24 * time.Hour)
+func signURLMinio(bucket, key string) (string, error) {
+	reqParams := make(url.Values)
+	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", key))
+	url, err := minioClient.PresignedGetObject(context.Background(), bucket, key, time.Hour, reqParams)
 	if err != nil {
 		return "", err
 	}
-	return signedURL, nil
+	return url.String(), nil
+}
+
+func init() {
+	ctx := context.Background()
+	var err error
+	if gcsClient, err = storage.NewClient(ctx); err != nil {
+		panic(err)
+	}
+
+	endpoint := "192.168.63.29:9000"
+	accessKeyID := "9b2yTqkrIBlf2TPHDL24"
+	secretAccessKey := "UX1fJraecnPD32W00mdpbFI5vi2MUzc6hn8lv7Jd"
+	useSSL := false
+
+	if minioClient, err = minio.New(endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
+		Secure: useSSL,
+	}); err != nil {
+		panic("bucket.init: err: " + err.Error())
+	}
+}
+
+func SignURL(ctx context.Context, bucket, key string) (string, error) {
+	return signURLGCS(bucket, key)
 }
