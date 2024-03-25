@@ -9,6 +9,8 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+
+	"github.com/stuff-ai/api/pkg/config"
 )
 
 var (
@@ -47,6 +49,7 @@ func init() {
 		panic(err)
 	}
 
+	// for local
 	endpoint := "192.168.63.29:9000"
 	accessKeyID := "9b2yTqkrIBlf2TPHDL24"
 	secretAccessKey := "UX1fJraecnPD32W00mdpbFI5vi2MUzc6hn8lv7Jd"
@@ -61,5 +64,8 @@ func init() {
 }
 
 func SignURL(ctx context.Context, bucket, key string) (string, error) {
+	if config.Env() == "local" {
+		return signURLMinio(bucket, key)
+	}
 	return signURLGCS(bucket, key)
 }

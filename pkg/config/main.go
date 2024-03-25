@@ -2,13 +2,20 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/kelseyhightower/envconfig"
+	log "github.com/sirupsen/logrus"
 )
 
 type obj struct {
 	Env      string
 	MongoURI string `envconfig:"MONGO_URI"`
+}
+
+func (o obj) MongoHost() string {
+	u, _ := url.Parse(o.MongoURI)
+	return u.Host
 }
 
 var (
@@ -25,6 +32,8 @@ func init() {
 		panic("config.init: env.STUFFAI_API_ENV required")
 	}
 	projectID = fmt.Sprintf("stuffai-%s", cfg.Env)
+
+	log.WithField("mongo", cfg.MongoHost()).Info("config.init: loaded")
 }
 
 func Env() string {
