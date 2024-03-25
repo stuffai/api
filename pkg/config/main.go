@@ -21,6 +21,9 @@ func init() {
 	if err = envconfig.Process("stuffai_api", &cfg); err != nil {
 		panic("config.init: " + err.Error())
 	}
+	if cfg.Env == "" {
+		panic("config.init: env.STUFFAI_API_ENV required")
+	}
 	projectID = fmt.Sprintf("stuffai-%s", cfg.Env)
 }
 
