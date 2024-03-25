@@ -2,18 +2,19 @@ package mongo
 
 import (
 	"context"
-	"os"
 	"slices"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/stuff-ai/api/pkg/config"
 )
 
 var client *mongo.Client
 
 func init() {
-	uri := os.Getenv("MONGO_URI")
+	uri := config.MongoURI()
 
 	ctx := context.Background()
 	var err error

@@ -4,22 +4,25 @@ import (
 	"context"
 
 	"cloud.google.com/go/pubsub"
-	"google.golang.org/api/option"
+
+	"github.com/stuff-ai/api/pkg/config"
 )
 
 var (
-	projectID = "stuffai-dev"
-	topicID   = "stuffai-dev"
-	client    *pubsub.Client
+	topicID string
+	client  *pubsub.Client
 )
 
 func init() {
 	ctx := context.Background()
+	projectID := config.ProjectID()
 
 	var err error
-	if client, err = pubsub.NewClient(ctx, projectID, option.WithCredentialsFile("/home/b/.gcloud/stuffai-dev-52b1d6089a1d.json")); err != nil {
+	if client, err = pubsub.NewClient(ctx, projectID); err != nil {
 		panic(err)
 	}
+
+	topicID = config.PubSubTopicID()
 }
 
 func Publish(ctx context.Context, b []byte) error {
