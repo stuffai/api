@@ -42,6 +42,7 @@ func (u *UserPrivate) ToPublic() UserPublic {
 }
 
 type UserProfile struct {
+	Username  string `json:"username" bson:"-"`
 	PPURL     string `json:"ppURL" bson:"ppURL"`
 	Name      string `json:"name" bson:"name"`
 	Bio       string `json:"bio" bson:"bio"`

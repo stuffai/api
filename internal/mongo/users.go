@@ -99,10 +99,11 @@ func FindUserByName(ctx context.Context, username string) (primitive.ObjectID, e
 // GetUserProfile
 func GetUserProfile(ctx context.Context, uid interface{}) (*types.UserProfile, error) {
 	var user types.UserPrivate
-	if err := usersCollection().FindOne(ctx, bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"profile": 1})).Decode(&user); err != nil {
+	if err := usersCollection().FindOne(ctx, bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"username": 1, "profile": 1})).Decode(&user); err != nil {
 		log.WithError(err).Error("mongo.GetUserProfile")
 		return nil, err
 	}
+	user.Profile.Username = user.Username // little hacky but we'll live
 	return user.Profile, nil
 }
 
