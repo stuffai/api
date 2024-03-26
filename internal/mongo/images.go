@@ -11,23 +11,43 @@ import (
 	"github.com/stuff-ai/api/pkg/types"
 )
 
-var viewProjection = mongo.Pipeline{
-	bson.D{{"$lookup", bson.D{
-		{"from", "prompts"},
-		{"localField", "promptID"},
-		{"foreignField", "_id"},
-		{"as", "promptDocs"},
-	}}},
-	bson.D{{"$project", bson.D{
-		{"userID", 1},
-		{"state", 1},
-		{"bucket", 1},
-		{"dtModified", 1},
-		{"title", "$promptDocs.title"},
-		{"prompt", "$promptDocs.prompt"},
-	}}},
-	bson.D{{"$unwind", "$title"}},
-	bson.D{{"$unwind", "$prompt"}},
+var viewProjection = bson.A{
+	bson.D{
+		{"$lookup",
+			bson.D{
+				{"from", "prompts"},
+				{"localField", "promptID"},
+				{"foreignField", "_id"},
+				{"as", "promptDocs"},
+			},
+		},
+	},
+	bson.D{{"$unwind", "$promptDocs"}},
+	bson.D{
+		{"$lookup",
+			bson.D{
+				{"from", "users"},
+				{"localField", "userID"},
+				{"foreignField", "_id"},
+				{"as", "userDocs"},
+			},
+		},
+	},
+	bson.D{{"$unwind", "$userDocs"}},
+	bson.D{
+		{"$project",
+			bson.D{
+				{"user._id", "$userDocs._id"},
+				{"user.ppURL", "$userDocs.profile.ppURL"},
+				{"user.username", "$userDocs.username"},
+				{"state", 1},
+				{"bucket", 1},
+				{"dtModified", 1},
+				{"title", "$promptDocs.title"},
+				{"prompt", "$promptDocs.prompt"},
+			},
+		},
+	},
 }
 
 func createImagesView(ctx context.Context) error {
@@ -48,6 +68,9 @@ func findImages(ctx context.Context, query interface{}, opt *options.FindOptions
 	if err = cur.All(ctx, &imgs); err != nil {
 		return nil, err
 	}
+	if imgs == nil {
+		imgs = []*types.Image{}
+	}
 	return imgs, nil
 }
 
@@ -58,5 +81,5 @@ func FindImages(ctx context.Context) ([]*types.Image, error) {
 }
 
 func FindImagesForUser(ctx context.Context, uid interface{}) ([]*types.Image, error) {
-	return findImages(ctx, bson.D{{"userID", uid}}, options.Find().SetSort(orderDescending))
+	return findImages(ctx, bson.D{{"state", 1}, {"user._id", uid}}, options.Find().SetSort(orderDescending))
 }

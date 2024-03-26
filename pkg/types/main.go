@@ -23,8 +23,14 @@ type Prompt struct {
 	Prompt string `json:"prompt" bson:"prompt"`
 }
 
+type ImageUser struct {
+	ID       string `json:"id" bson:"_id"`
+	Username string `json:"username" bson:"username"`
+	PPURL    string `json:"ppURL" bson:"ppURL"`
+}
+
 type Image struct {
-	UserID     string    `json:"userID"`
+	User       ImageUser `json:"user"`
 	Title      string    `json:"title"`
 	Prompt     string    `json:"prompt"`
 	DTModified time.Time `json:"dtModified"`
