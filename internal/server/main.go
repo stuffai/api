@@ -51,7 +51,7 @@ func postCrafts(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	jobID, err := mongo.InsertJob(ctx, promptID)
+	jobID, err := mongo.InsertJob(ctx, c.Get("uid"), promptID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

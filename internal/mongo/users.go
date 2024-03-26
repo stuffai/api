@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -78,4 +79,17 @@ func AuthenticateUser(username, password string) (*types.UserPrivate, error) {
 	}
 
 	return &user, nil
+}
+
+type userID struct {
+	ID *primitive.ObjectID `bson:"_id"`
+}
+
+// FindUserByName returns the user ID of the given username as a Mongo ObjectID.
+func FindUserByName(ctx context.Context, username string) (*primitive.ObjectID, error) {
+	var user userID
+	if err := usersCollection().FindOne(ctx, bson.M{"username": username}, options.FindOne().SetProjection(bson.M{"_id": 1})).Decode(&user); err != nil {
+		return nil, err
+	}
+	return user.ID, nil
 }

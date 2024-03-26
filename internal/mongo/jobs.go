@@ -16,7 +16,7 @@ func jobsCollection() *mongo.Collection {
 	return db().Collection("jobs")
 }
 
-func InsertJob(ctx context.Context, promptID string) (string, error) {
+func InsertJob(ctx context.Context, userID interface{}, promptID string) (string, error) {
 	promptOID, err := primitive.ObjectIDFromHex(promptID)
 	if err != nil {
 		return "", err
@@ -25,6 +25,7 @@ func InsertJob(ctx context.Context, promptID string) (string, error) {
 	result, err := jobsCollection().InsertOne(
 		ctx,
 		bson.D{
+			{"userID", userID},
 			{"promptID", promptOID},
 			{"state", 0},
 			{"dtCreated", time.Now()},
@@ -68,3 +69,9 @@ func FindAllJobBuckets(ctx context.Context) ([]types.Bucket, error) {
 	}
 	return buckets, nil
 }
+
+/*
+func CountJobsForUser(ctx context.Context, uid interface{}) (int, error) {
+	count, err := jobsCollection().CountDocuments(ctx, bson.M{"userID", uid)
+}
+*/
