@@ -11,7 +11,6 @@ import (
 	"github.com/stuff-ai/api/internal/mongo"
 	"github.com/stuff-ai/api/internal/queue"
 	"github.com/stuff-ai/api/pkg/types"
-	"github.com/stuff-ai/api/pkg/types/api"
 )
 
 func New() *echo.Echo {
@@ -26,6 +25,7 @@ func New() *echo.Echo {
 	e.GET("/feed", getFeed)
 	e.POST("/crafts", jwtMiddleware(postCrafts))
 	e.GET("/profile", jwtMiddleware(getProfile))
+	e.PUT("/profile", jwtMiddleware(putProfile))
 
 	e.POST("/prompts", postPrompts)
 	e.GET("/prompts/rand", getPromptRand)
@@ -49,7 +49,7 @@ func postCrafts(c echo.Context) error {
 	}
 
 	// Insert into DB.
-	ctx := context.Background()
+	ctx := c.Request().Context()
 	promptID, err := mongo.InsertPrompt(ctx, req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -71,7 +71,7 @@ func postPrompts(c echo.Context) error {
 	if err := c.Bind(req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	id, err := mongo.InsertPrompt(context.Background(), req)
+	id, err := mongo.InsertPrompt(c.Request().Context(), req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -79,7 +79,7 @@ func postPrompts(c echo.Context) error {
 }
 
 func getPromptRand(c echo.Context) error {
-	prompt, err := mongo.RandomPrompt(context.Background())
+	prompt, err := mongo.RandomPrompt(c.Request().Context())
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -87,8 +87,7 @@ func getPromptRand(c echo.Context) error {
 }
 
 func getJobByID(c echo.Context) error {
-	ctx := context.Background()
-	prompt, err := mongo.FindJobByID(ctx, c.Param("id"))
+	prompt, err := mongo.FindJobByID(c.Request().Context(), c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -96,7 +95,7 @@ func getJobByID(c echo.Context) error {
 }
 
 func getJobImageURL(c echo.Context) error {
-	ctx := context.Background()
+	ctx := c.Request().Context()
 	prompt, err := mongo.FindJobByID(ctx, c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -110,7 +109,7 @@ func getJobImageURL(c echo.Context) error {
 }
 
 func getFeed(c echo.Context) error {
-	ctx := context.Background()
+	ctx := c.Request().Context()
 	feed, err := mongo.FindImages(ctx)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -126,11 +125,28 @@ func getFeed(c echo.Context) error {
 }
 
 func getProfile(c echo.Context) error {
-	count, err := mongo.CountJobsForUser(c.Request().Context(), c.Get("uid"))
+	ctx := c.Request().Context()
+	uid := c.Get("uid")
+	profile, err := mongo.GetUserProfile(ctx, uid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(http.StatusOK, api.ProfileResponse{
-		JobsCount: count,
-	})
+	count, err := mongo.CountJobsForUser(ctx, uid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	profile.Crafts = int(count)
+
+	return c.JSON(http.StatusOK, profile)
+}
+
+func putProfile(c echo.Context) error {
+	profile := new(types.UserProfile)
+	if err := c.Bind(profile); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	if err := mongo.UpdateUserProfile(c.Request().Context(), c.Get("uid"), profile); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return c.NoContent(http.StatusOK)
 }

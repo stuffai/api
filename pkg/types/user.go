@@ -14,6 +14,8 @@ type UserPrivate struct {
 	DTCreated    time.Time  `bson:"dtCreated"`
 	DTModified   time.Time  `bson:"dtModified"`
 	DTDeleted    *time.Time `bson:"dt_deleted,omitempty"` // Optional, for tombstoning
+
+	Profile *UserProfile `bson:"profile"`
 }
 
 // UserPublic represents the user information that can be exposed over the API.
@@ -37,4 +39,13 @@ func (u *UserPrivate) ToPublic() UserPublic {
 		DTModified: u.DTModified,
 		DTDeleted:  u.DTDeleted, // Directly copied, as it's fine to expose whether a user is marked as deleted
 	}
+}
+
+type UserProfile struct {
+	PPURL     string `json:"ppURL" bson:"ppURL"`
+	Name      string `json:"name" bson:"name"`
+	Pronouns  string `json:"pronouns" bson:"pronouns"`
+	Crafts    int    `json:"crafts" bson:"-"`
+	Followers int    `json:"followers" bson:"-"`
+	Following int    `json:"following" bson:"-"`
 }

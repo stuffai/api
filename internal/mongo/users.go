@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/stuff-ai/api/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -40,12 +41,13 @@ func InsertUser(ctx context.Context, username, email, password string) (string, 
 
 	// Create a new UserPrivate object
 	newUser := types.UserPrivate{
+		// ID is omitted to let MongoDB generate it
 		Username:     username,
 		Email:        email,
 		PasswordHash: string(hashedPassword),
 		DTCreated:    time.Now(),
 		DTModified:   time.Now(),
-		// ID is omitted to let MongoDB generate it
+		Profile:      new(types.UserProfile),
 	}
 
 	// Insert the new user into the collection
@@ -82,14 +84,30 @@ func AuthenticateUser(username, password string) (*types.UserPrivate, error) {
 }
 
 type userID struct {
-	ID *primitive.ObjectID `bson:"_id"`
+	ID primitive.ObjectID `bson:"_id"`
 }
 
 // FindUserByName returns the user ID of the given username as a Mongo ObjectID.
-func FindUserByName(ctx context.Context, username string) (*primitive.ObjectID, error) {
+func FindUserByName(ctx context.Context, username string) (primitive.ObjectID, error) {
 	var user userID
 	if err := usersCollection().FindOne(ctx, bson.M{"username": username}, options.FindOne().SetProjection(bson.M{"_id": 1})).Decode(&user); err != nil {
-		return nil, err
+		return primitive.NilObjectID, err
 	}
 	return user.ID, nil
+}
+
+// GetUserProfile
+func GetUserProfile(ctx context.Context, uid interface{}) (*types.UserProfile, error) {
+	var user types.UserPrivate
+	if err := usersCollection().FindOne(ctx, bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"profile": 1})).Decode(&user); err != nil {
+		log.WithError(err).Error("mongo.GetUserProfile")
+		return nil, err
+	}
+	return user.Profile, nil
+}
+
+// UpdateUserProfile updates a user's profile with the given input object
+func UpdateUserProfile(ctx context.Context, uid interface{}, profile *types.UserProfile) error {
+	_, err := usersCollection().UpdateByID(ctx, uid, bson.D{{"$set", bson.D{{"profile", profile}}}})
+	return err
 }
