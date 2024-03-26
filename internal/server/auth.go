@@ -11,6 +11,7 @@ import (
 
 	"github.com/stuff-ai/api/internal/mongo"
 	"github.com/stuff-ai/api/pkg/config"
+	"github.com/stuff-ai/api/pkg/types/api"
 )
 
 var jwtKey = config.JWTKey()
@@ -40,15 +41,9 @@ func generateToken(username string) (string, error) {
 	return tokenString, nil
 }
 
-// LoginRequest is the request body for login
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 // login handles user login, returning a JWT token upon success
 func login(c echo.Context) error {
-	var req LoginRequest
+	var req api.LoginRequest
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
 	}
@@ -68,17 +63,10 @@ func login(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"token": tokenString})
 }
 
-// SignupRequestBody defines the expected structure of the signup request body
-type SignupRequestBody struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 // signup handles the user signup process
 func signup(c echo.Context) error {
 	// Parse the request body to get signup details
-	var requestBody SignupRequestBody
+	var requestBody api.SignupRequestBody
 	if err := c.Bind(&requestBody); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/stuff-ai/api/internal/mongo"
 	"github.com/stuff-ai/api/internal/queue"
 	"github.com/stuff-ai/api/pkg/types"
+	"github.com/stuff-ai/api/pkg/types/api"
 )
 
 func New() *echo.Echo {
@@ -23,9 +24,11 @@ func New() *echo.Echo {
 
 	// Routes
 	e.GET("/feed", getFeed)
+	e.POST("/crafts", jwtMiddleware(postCrafts))
+	e.GET("/profile", jwtMiddleware(getProfile))
+
 	e.POST("/prompts", postPrompts)
 	e.GET("/prompts/rand", getPromptRand)
-	e.POST("/crafts", jwtMiddleware(postCrafts))
 	e.GET("/jobs/:id", getJobByID)
 	e.GET("/jobs/:id/img", getJobImageURL)
 
@@ -120,4 +123,14 @@ func getFeed(c echo.Context) error {
 		img.URL = signedURL
 	}
 	return c.JSON(http.StatusOK, feed)
+}
+
+func getProfile(c echo.Context) error {
+	count, err := mongo.CountJobsForUser(c.Request().Context(), c.Get("uid"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, api.ProfileResponse{
+		JobsCount: count,
+	})
 }

@@ -70,8 +70,10 @@ func FindAllJobBuckets(ctx context.Context) ([]types.Bucket, error) {
 	return buckets, nil
 }
 
-/*
-func CountJobsForUser(ctx context.Context, uid interface{}) (int, error) {
-	count, err := jobsCollection().CountDocuments(ctx, bson.M{"userID", uid)
+func CountJobsForUser(ctx context.Context, uid interface{}) (int64, error) {
+	count, err := jobsCollection().CountDocuments(ctx, bson.M{"userID": uid})
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
-*/
