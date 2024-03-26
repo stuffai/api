@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -104,8 +105,8 @@ func signup(c echo.Context) error {
 // jwtMiddleware validates JWT tokens for protected routes
 func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		log.Info("hello")
-		tokenString := c.Request().Header.Get("Authorization")
+		authHeader := c.Request().Header.Get("Authorization")
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		claims := &JWTClaims{}
 
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
