@@ -10,9 +10,9 @@ type UserPrivate struct {
 	ID           string     `bson:"_id,omitempty"`
 	Username     string     `bson:"username"`
 	Email        string     `bson:"email"`
-	PasswordHash string     `bson:"password_hash"` // Sensitive
-	DTCreated    time.Time  `bson:"dt_created"`
-	DTModified   time.Time  `bson:"dt_modified"`
+	PasswordHash string     `bson:"passwordHash"` // Sensitive
+	DTCreated    time.Time  `bson:"dtCreated"`
+	DTModified   time.Time  `bson:"dtModified"`
 	DTDeleted    *time.Time `bson:"dt_deleted,omitempty"` // Optional, for tombstoning
 }
 
@@ -21,9 +21,9 @@ type UserPublic struct {
 	ID         string     `json:"id"`
 	Username   string     `json:"username"`
 	Email      string     `json:"email"`
-	DTCreated  time.Time  `json:"dt_created"`
-	DTModified time.Time  `json:"dt_modified"`
-	DTDeleted  *time.Time `json:"dt_deleted,omitempty"` // Optional, for tombstoning
+	DTCreated  time.Time  `json:"dtCreated"`
+	DTModified time.Time  `json:"dtModified"`
+	DTDeleted  *time.Time `json:"dtDeleted,omitempty"` // Optional, for tombstoning
 }
 
 // ToPublic converts a UserPrivate instance to a UserPublic instance.
