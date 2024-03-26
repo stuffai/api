@@ -8,10 +8,12 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
-	"github.com/stuff-ai/api/internal/mongo" // Use the correct path
+
+	"github.com/stuff-ai/api/internal/mongo"
+	"github.com/stuff-ai/api/pkg/config"
 )
 
-var jwtKey = []byte("your_secret_key") // This should be a secret key
+var jwtKey = config.JWTKey()
 
 // JWTClaims extends the standard jwt.Claims struct
 type JWTClaims struct {

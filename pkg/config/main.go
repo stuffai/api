@@ -11,6 +11,7 @@ import (
 type obj struct {
 	Env      string
 	MongoURI string `envconfig:"MONGO_URI"`
+	JWTKey   string `envconfig:"JWT_KEY"`
 }
 
 func (o obj) MongoHost() string {
@@ -31,6 +32,9 @@ func init() {
 	if cfg.Env == "" {
 		panic("config.init: env.STUFFAI_API_ENV required")
 	}
+	if cfg.JWTKey == "" {
+		panic("config.init: env.STUFFAI_API_JWT_KEY required")
+	}
 	projectID = fmt.Sprintf("stuffai-%s", cfg.Env)
 
 	log.WithField("mongo", cfg.MongoHost()).Info("config.init: loaded")
@@ -50,4 +54,8 @@ func PubSubTopicID() string {
 
 func MongoURI() string {
 	return cfg.MongoURI
+}
+
+func JWTKey() []byte {
+	return []byte(cfg.JWTKey)
 }
