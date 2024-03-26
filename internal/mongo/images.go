@@ -19,6 +19,7 @@ var viewProjection = mongo.Pipeline{
 		{"as", "promptDocs"},
 	}}},
 	bson.D{{"$project", bson.D{
+		{"userID", 1},
 		{"state", 1},
 		{"bucket", 1},
 		{"dtModified", 1},
@@ -38,8 +39,8 @@ func imagesCollection() *mongo.Collection {
 	return db().Collection("images")
 }
 
-func FindImages(ctx context.Context) ([]*types.Image, error) {
-	cur, err := imagesCollection().Find(ctx, bson.D{{"state", 1}}, options.Find().SetSort(bson.D{{"dtModified", -1}}))
+func findImages(ctx context.Context, query interface{}, opt *options.FindOptions) ([]*types.Image, error) {
+	cur, err := imagesCollection().Find(ctx, query, opt)
 	if err != nil {
 		return nil, err
 	}
@@ -48,4 +49,14 @@ func FindImages(ctx context.Context) ([]*types.Image, error) {
 		return nil, err
 	}
 	return imgs, nil
+}
+
+var orderDescending = bson.D{{"dtModified", -1}}
+
+func FindImages(ctx context.Context) ([]*types.Image, error) {
+	return findImages(ctx, bson.D{{"state", 1}}, options.Find().SetSort(orderDescending))
+}
+
+func FindImagesForUser(ctx context.Context, uid interface{}) ([]*types.Image, error) {
+	return findImages(ctx, bson.D{{"userID", uid}}, options.Find().SetSort(orderDescending))
 }

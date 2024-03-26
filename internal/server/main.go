@@ -21,19 +21,19 @@ func New() *echo.Echo {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// Routes
+	// Public
+	e.POST("/signup", signup)
+	e.POST("/login", login)
 	e.GET("/feed", getFeed)
 	e.POST("/crafts", jwtMiddleware(postCrafts))
 	e.GET("/profile", jwtMiddleware(getProfile))
 	e.PUT("/profile", jwtMiddleware(putProfile))
 
+	// Private
 	e.POST("/prompts", postPrompts)
 	e.GET("/prompts/rand", getPromptRand)
 	e.GET("/jobs/:id", getJobByID)
 	e.GET("/jobs/:id/img", getJobImageURL)
-
-	e.POST("/signup", signup)
-	e.POST("/login", login)
 
 	// Start server
 	return e
@@ -114,12 +114,8 @@ func getFeed(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	for _, img := range feed {
-		signedURL, err := bucket.SignURL(ctx, img.Bucket.Name, img.Bucket.Key)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-		}
-		img.URL = signedURL
+	if err := bucket.SignImages(ctx, feed); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, feed)
 }
@@ -127,6 +123,8 @@ func getFeed(c echo.Context) error {
 func getProfile(c echo.Context) error {
 	ctx := c.Request().Context()
 	uid := c.Get("uid")
+
+	// build profile (TODO optimize with aggregation or views or something)
 	profile, err := mongo.GetUserProfile(ctx, uid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -136,6 +134,14 @@ func getProfile(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	profile.Crafts = int(count)
+	imgs, err := mongo.FindImagesForUser(ctx, uid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	if err := bucket.SignImages(ctx, imgs); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	profile.Images = imgs
 
 	return c.JSON(http.StatusOK, profile)
 }

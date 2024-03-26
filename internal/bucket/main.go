@@ -11,6 +11,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
 	"github.com/stuff-ai/api/pkg/config"
+	"github.com/stuff-ai/api/pkg/types"
 )
 
 var (
@@ -68,4 +69,15 @@ func SignURL(ctx context.Context, bucket, key string) (string, error) {
 		return signURLMinio(bucket, key)
 	}
 	return signURLGCS(bucket, key)
+}
+
+func SignImages(ctx context.Context, imgs []*types.Image) error {
+	for _, img := range imgs {
+		signedURL, err := SignURL(ctx, img.Bucket.Name, img.Bucket.Key)
+		if err != nil {
+			return err
+		}
+		img.URL = signedURL
+	}
+	return nil
 }

@@ -24,6 +24,7 @@ type Prompt struct {
 }
 
 type Image struct {
+	UserID     string    `json:"userID"`
 	Title      string    `json:"title"`
 	Prompt     string    `json:"prompt"`
 	DTModified time.Time `json:"dtModified"`
