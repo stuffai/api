@@ -81,7 +81,7 @@ func signup(c echo.Context) error {
 	}
 
 	// Pass the signup details to the mongo layer for user creation
-	userID, err := mongo.InsertUser(c.Request().Context(), requestBody.Username, requestBody.Email, requestBody.Password)
+	_, err := mongo.InsertUser(c.Request().Context(), requestBody.Username, requestBody.Email, requestBody.Password)
 	if err != nil {
 		// Log the error and return a generic error message to the client
 		// You might want to handle different types of errors differently
@@ -98,16 +98,13 @@ func signup(c echo.Context) error {
 	}
 
 	// Return success response
-	return c.JSON(http.StatusCreated, echo.Map{
-		"message": "User created successfully",
-		"user_id": userID,
-		"token":   tokenString,
-	})
+	return c.JSON(http.StatusCreated, echo.Map{"token": tokenString})
 }
 
 // jwtMiddleware validates JWT tokens for protected routes
 func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		log.Info("hello")
 		tokenString := c.Request().Header.Get("Authorization")
 		claims := &JWTClaims{}
 
