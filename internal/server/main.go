@@ -25,7 +25,7 @@ func New() *echo.Echo {
 	e.GET("/feed", getFeed)
 	e.POST("/prompts", postPrompts)
 	e.GET("/prompts/rand", getPromptRand)
-	e.POST("/jobs", postJobs)
+	e.POST("/crafts", jwtMiddleware(postCrafts))
 	e.GET("/jobs/:id", getJobByID)
 	e.GET("/jobs/:id/img", getJobImageURL)
 
@@ -37,7 +37,7 @@ func New() *echo.Echo {
 }
 
 // Handler
-func postJobs(c echo.Context) error {
+func postCrafts(c echo.Context) error {
 	req := new(types.Prompt)
 
 	// Parse req.
