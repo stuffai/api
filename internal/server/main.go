@@ -6,7 +6,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/stuff-ai/api/internal/bucket"
 	"github.com/stuff-ai/api/internal/img"
@@ -145,9 +144,10 @@ func getProfile(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	log.WithField("key", profile.PPBucket).Info("getProfile")
 	// sign profile picture
-
+	if err := bucket.MaybeSignProfilePicture(ctx, profile); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
 	// craft count
 	count, err := mongo.CountJobsForUser(ctx, uid)
 	if err != nil {
