@@ -109,7 +109,13 @@ func GetUserProfile(ctx context.Context, uid interface{}) (*types.UserProfile, e
 
 // UpdateUserProfile updates a user's profile with the given input object
 func UpdateUserProfile(ctx context.Context, uid interface{}, profile *types.UserProfile) error {
-	_, err := usersCollection().UpdateByID(ctx, uid, bson.D{{"$set", bson.D{{"profile", profile}}}})
+	_, err := usersCollection().UpdateByID(ctx, uid, bson.D{{"$set",
+		bson.D{
+			{"profile.name", profile.Name},
+			{"profile.pronouns", profile.Pronouns},
+			{"profile.bio", profile.Bio},
+		}},
+	})
 	return err
 }
 
