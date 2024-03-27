@@ -1,17 +1,24 @@
 package bucket
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/url"
 	"time"
 
 	"cloud.google.com/go/storage"
+	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
 	"github.com/stuff-ai/api/pkg/config"
 	"github.com/stuff-ai/api/pkg/types"
+)
+
+const (
+	jpgContentType = "image/jpeg"
 )
 
 var (
@@ -65,7 +72,7 @@ func init() {
 }
 
 func SignURL(ctx context.Context, bucket, key string) (string, error) {
-	if config.Env() == "local" {
+	if config.IsLocalEnv() {
 		return signURLMinio(bucket, key)
 	}
 	return signURLGCS(bucket, key)
@@ -78,6 +85,36 @@ func SignImages(ctx context.Context, imgs []*types.Image) error {
 			return err
 		}
 		img.URL = signedURL
+	}
+	return nil
+}
+
+func ppBucketKey(username string) (string, string) {
+	return config.ProjectID(), fmt.Sprintf("profiles/%s/%s", username, uuid.New().String())
+}
+
+// UploadImage uploads the image and returns the bucket and key where it's stored.
+func UploadImage(ctx context.Context, username string, in *bytes.Buffer) (string, string, error) {
+	bkt, key := ppBucketKey(username)
+
+	if config.IsLocalEnv() {
+		return bkt, key, uploadImageMinio(ctx, in, bkt, key)
+	}
+	return bkt, key, uploadImageGCS(ctx, in, bkt, key)
+}
+
+func uploadImageMinio(ctx context.Context, in *bytes.Buffer, bkt, key string) error {
+	_, err := minioClient.PutObject(ctx, bkt, key, in, int64(in.Len()), minio.PutObjectOptions{ContentType: jpgContentType})
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func uploadImageGCS(ctx context.Context, in *bytes.Buffer, bkt, key string) error {
+	wc := gcsClient.Bucket(bkt).Object(key).NewWriter(ctx)
+	if _, err := io.Copy(wc, in); err != nil {
+		return err
 	}
 	return nil
 }

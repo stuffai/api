@@ -44,6 +44,10 @@ func Env() string {
 	return cfg.Env
 }
 
+func IsLocalEnv() bool {
+	return cfg.Env == "local"
+}
+
 func ProjectID() string {
 	return projectID
 }

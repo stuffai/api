@@ -102,17 +102,20 @@ func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		})
+		log.WithField("token", tokenString).Info("auth.jwt")
 
 		if err != nil || !token.Valid {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
 		}
 
 		// add username to the context
-		uid, err := mongo.FindUserByName(c.Request().Context(), token.Claims.(*JWTClaims).Username)
+		username := token.Claims.(*JWTClaims).Username
+		uid, err := mongo.FindUserByName(c.Request().Context(), username)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Backend failure")
 		}
 		c.Set("uid", uid)
+		c.Set("username", username)
 
 		// Token is valid, you can proceed with the request and also use the claims
 		// For example, to get the username: claims.Username

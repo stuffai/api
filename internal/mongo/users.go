@@ -112,3 +112,9 @@ func UpdateUserProfile(ctx context.Context, uid interface{}, profile *types.User
 	_, err := usersCollection().UpdateByID(ctx, uid, bson.D{{"$set", bson.D{{"profile", profile}}}})
 	return err
 }
+
+// UpdateUserProfilePicture updates the profile picture bucket information
+func UpdateUserProfilePicture(ctx context.Context, uid interface{}, bkt, key string) error {
+	_, err := usersCollection().UpdateByID(ctx, uid, bson.D{{"$set", bson.D{{"profile.ppBucket", types.Bucket{bkt, key}}}}})
+	return err
+}

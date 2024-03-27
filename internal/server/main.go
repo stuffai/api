@@ -6,8 +6,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/stuff-ai/api/internal/bucket"
+	"github.com/stuff-ai/api/internal/img"
 	"github.com/stuff-ai/api/internal/mongo"
 	"github.com/stuff-ai/api/internal/queue"
 	"github.com/stuff-ai/api/pkg/types"
@@ -16,6 +18,11 @@ import (
 func New() *echo.Echo {
 	// Echo instance
 	e := echo.New()
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},                                        // Allows all origins
+		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE}, // Adjust methods as needed
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+	}))
 
 	// Middleware
 	e.Use(middleware.Logger())
@@ -28,6 +35,7 @@ func New() *echo.Echo {
 	e.POST("/crafts", jwtMiddleware(postCrafts))
 	e.GET("/profile", jwtMiddleware(getProfile))
 	e.PUT("/profile", jwtMiddleware(putProfile))
+	e.POST("/profile/picture", jwtMiddleware(postProfilePicture))
 
 	// Private
 	e.POST("/prompts", postPrompts)
@@ -129,11 +137,22 @@ func getProfile(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+	log.WithField("key", profile.PPBucket).Info("getProfile")
+	// sign profile picture
+	if profile.PPBucket.Key != "" {
+		ppURL, err := bucket.SignURL(ctx, profile.PPBucket.Name, profile.PPBucket.Key)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		profile.PPURL = ppURL
+	}
+	// craft count
 	count, err := mongo.CountJobsForUser(ctx, uid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	profile.Crafts = int(count)
+	// images
 	imgs, err := mongo.FindImagesForUser(ctx, uid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -154,5 +173,36 @@ func putProfile(c echo.Context) error {
 	if err := mongo.UpdateUserProfile(c.Request().Context(), c.Get("uid"), profile); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+	return c.NoContent(http.StatusOK)
+}
+
+func postProfilePicture(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	defer src.Close()
+
+	imgBuf, err := img.ProcessImage(src)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	bkt, key, err := bucket.UploadImage(ctx, c.Get("username").(string), imgBuf)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	if err := mongo.UpdateUserProfilePicture(ctx, c.Get("uid"), bkt, key); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
 	return c.NoContent(http.StatusOK)
 }
