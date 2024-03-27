@@ -118,3 +118,16 @@ func uploadImageGCS(ctx context.Context, in *bytes.Buffer, bkt, key string) erro
 	}
 	return nil
 }
+
+// MaybeSignProfilePicture inspects the ppBucket field of a UserProfile and signs the URL if it exists.
+func MaybeSignProfilePicture(ctx context.Context, pf *types.ImageUser) error {
+	if pf.PPBucket.Key == "" {
+		return nil
+	}
+	ppURL, err := SignURL(ctx, pf.PPBucket.Name, pf.PPBucket.Key)
+	if err != nil {
+		return err
+	}
+	pf.PPURL = ppURL
+	return nil
+}

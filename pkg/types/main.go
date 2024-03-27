@@ -26,14 +26,15 @@ type Prompt struct {
 type ImageUser struct {
 	ID       string `json:"id" bson:"_id"`
 	Username string `json:"username" bson:"username"`
-	PPURL    string `json:"ppURL" bson:"ppURL"`
+	PPURL    string `json:"ppURL" bson:"-"`
+	PPBucket Bucket `json:"-" bson:"ppBucket"`
 }
 
 type Image struct {
-	User       ImageUser `json:"user"`
-	Title      string    `json:"title"`
-	Prompt     string    `json:"prompt"`
-	DTModified time.Time `json:"dtModified"`
-	Bucket     Bucket    `json:"-"`
-	URL        string    `json:"url"`
+	User       *ImageUser `json:"user"`
+	Title      string     `json:"title"`
+	Prompt     string     `json:"prompt"`
+	DTModified time.Time  `json:"dtModified"`
+	Bucket     Bucket     `json:"-"`
+	URL        string     `json:"url"`
 }

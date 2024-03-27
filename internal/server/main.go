@@ -125,6 +125,14 @@ func getFeed(c echo.Context) error {
 	if err := bucket.SignImages(ctx, feed); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
+	// TODO: This is likely to cause performance issues. Invest in a better solution.
+	// - maybe a support field/endpoint containing a mapping of username/id to ppURLs
+	for _, img := range feed {
+		if err := bucket.MaybeSignProfilePicture(ctx, img.User); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+	}
+
 	return c.JSON(http.StatusOK, feed)
 }
 
@@ -139,13 +147,7 @@ func getProfile(c echo.Context) error {
 	}
 	log.WithField("key", profile.PPBucket).Info("getProfile")
 	// sign profile picture
-	if profile.PPBucket.Key != "" {
-		ppURL, err := bucket.SignURL(ctx, profile.PPBucket.Name, profile.PPBucket.Key)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-		}
-		profile.PPURL = ppURL
-	}
+
 	// craft count
 	count, err := mongo.CountJobsForUser(ctx, uid)
 	if err != nil {
