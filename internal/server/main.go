@@ -35,6 +35,7 @@ func New() *echo.Echo {
 	e.GET("/profile", jwtMiddleware(getProfile))
 	e.PUT("/profile", jwtMiddleware(putProfile))
 	e.POST("/profile/picture", jwtMiddleware(postProfilePicture))
+	e.GET("/users/:name/feed", getUserFeed)
 
 	// Private
 	e.POST("/prompts", postPrompts)
@@ -121,17 +122,9 @@ func getFeed(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	if err := bucket.SignImages(ctx, feed); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	if err := _signImages(ctx, feed); err != nil {
+		return err
 	}
-	// TODO: This is likely to cause performance issues. Invest in a better solution.
-	// - maybe a support field/endpoint containing a mapping of username/id to ppURLs
-	for _, img := range feed {
-		if err := bucket.MaybeSignProfilePicture(ctx, img.User); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-		}
-	}
-
 	return c.JSON(http.StatusOK, feed)
 }
 
@@ -207,4 +200,36 @@ func postProfilePicture(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusOK)
+}
+
+func getUserFeed(c echo.Context) error {
+	uname := c.Param("name")
+	ctx := c.Request().Context()
+	uid, err := mongo.FindUserByName(ctx, uname)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
+	feed, err := mongo.FindImagesForUser(ctx, uid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	if err := _signImages(ctx, feed); err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, feed)
+}
+
+func _signImages(ctx context.Context, feed []*types.Image) error {
+	if err := bucket.SignImages(ctx, feed); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	// TODO: This is likely to cause performance issues. Invest in a better solution.
+	// - maybe a support field/endpoint containing a mapping of username/id to ppURLs
+	for _, img := range feed {
+		if err := bucket.MaybeSignProfilePicture(ctx, img.User); err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+	}
+	return nil
 }
