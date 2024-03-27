@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -71,9 +72,18 @@ func signup(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request payload")
 	}
 
+	// Minimum username length 2
+	if len(requestBody.Username) < 2 {
+		return echo.NewHTTPError(http.StatusBadRequest, "Username must be at least 2 characters")
+	}
+
+	// Test if email is real
+	if _, err := mail.ParseAddress(requestBody.Email); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid email")
+	}
+
 	// Pass the signup details to the mongo layer for user creation
-	_, err := mongo.InsertUser(c.Request().Context(), requestBody.Username, requestBody.Email, requestBody.Password)
-	if err != nil {
+	if _, err := mongo.InsertUser(c.Request().Context(), requestBody.Username, requestBody.Email, requestBody.Password); err != nil {
 		// Log the error and return a generic error message to the client
 		// You might want to handle different types of errors differently
 		log.WithError(err).Error("api.signup: insertUser")
