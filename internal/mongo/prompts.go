@@ -17,10 +17,8 @@ func promptsCollection() *mongo.Collection {
 }
 
 func InsertPrompt(ctx context.Context, prompt *types.Prompt) (string, error) {
-	result, err := promptsCollection().InsertOne(
-		ctx,
-		bson.D{{"title", prompt.Title}, {"prompt", prompt.Prompt}},
-	)
+	prompt.Slugify()
+	result, err := promptsCollection().InsertOne(ctx, prompt)
 	if err != nil {
 		return "", err
 	}

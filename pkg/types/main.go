@@ -21,6 +21,7 @@ type Job struct {
 type Prompt struct {
 	Title  string `json:"title" bson:"title"`
 	Prompt string `json:"prompt" bson:"prompt"`
+	Slug   string `json:"slug" bson:"slug"`
 }
 
 type ImageUser struct {
