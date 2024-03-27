@@ -112,7 +112,7 @@ func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		})
-		log.WithField("token", tokenString).Info("auth.jwt")
+		log.WithField("token", tokenString).Info("auth.jwt") // TODO(IMPORTANT): remove
 
 		if err != nil || !token.Valid {
 			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
