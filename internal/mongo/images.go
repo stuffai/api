@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -82,4 +83,31 @@ func FindImages(ctx context.Context) ([]*types.Image, error) {
 
 func FindImagesForUser(ctx context.Context, uid interface{}) ([]*types.Image, error) {
 	return findImages(ctx, bson.D{{"state", 1}, {"user._id", uid}}, options.Find().SetSort(orderDescending))
+}
+
+var getRankRandomSamplePipeline = mongo.Pipeline{
+	{{"$group", bson.D{
+		{"_id", "$user._id"},
+		{"docs", bson.D{{"$push", "$$ROOT"}}},
+	}}},
+	{{"$unwind", "$docs"}},
+	{{"$sample", bson.D{{"size", 3}}}},
+	{{"$replaceRoot", bson.D{{"newRoot", "$docs"}}}},
+}
+
+func FindImagesForRank(ctx context.Context) ([]*types.Image, error) {
+	cur, err := imagesCollection().Aggregate(ctx, getRankRandomSamplePipeline)
+	if err != nil {
+		log.WithError(err).Error("RandomPrompt: collection.Aggregate")
+		return nil, err
+	}
+	var results []*types.Image
+	if err = cur.All(ctx, &results); err != nil {
+		log.WithError(err).Error("RandomPrompt: cursor.Decode")
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, errors.New("RandomPrompt: no results")
+	}
+	return results, nil
 }

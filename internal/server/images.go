@@ -40,6 +40,18 @@ func getUserFeed(c echo.Context) error {
 	return c.JSON(http.StatusOK, feed)
 }
 
+func getRank(c echo.Context) error {
+	ctx := c.Request().Context()
+	imgs, err := mongo.FindImagesForRank(ctx)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	if err := _signImages(ctx, imgs); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, imgs)
+}
+
 func _signImages(ctx context.Context, feed []*types.Image) error {
 	if err := bucket.SignImages(ctx, feed); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
