@@ -35,6 +35,7 @@ func New() *echo.Echo {
 	e.GET("/profile", jwtMiddleware(getProfile))
 	e.PUT("/profile", jwtMiddleware(putProfile))
 	e.POST("/profile/picture", jwtMiddleware(postProfilePicture))
+	e.GET("/users/:name", getUserProfile)
 	e.GET("/users/:name/feed", getUserFeed)
 
 	// Private
@@ -129,35 +130,7 @@ func getFeed(c echo.Context) error {
 }
 
 func getProfile(c echo.Context) error {
-	ctx := c.Request().Context()
-	uid := c.Get("uid")
-
-	// build profile (TODO optimize with aggregation or views or something)
-	profile, err := mongo.GetUserProfile(ctx, uid)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-	// sign profile picture
-	if err := bucket.MaybeSignProfilePicture(ctx, profile); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-	// craft count
-	count, err := mongo.CountJobsForUser(ctx, uid)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-	profile.Crafts = int(count)
-	// images
-	imgs, err := mongo.FindImagesForUser(ctx, uid)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-	if err := bucket.SignImages(ctx, imgs); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-	profile.Images = imgs
-
-	return c.JSON(http.StatusOK, profile)
+	return _getProfile(c, c.Get("uid"))
 }
 
 func putProfile(c echo.Context) error {
@@ -202,6 +175,19 @@ func postProfilePicture(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+func getUserProfile(c echo.Context) error {
+	ctx := c.Request().Context()
+	name := c.Param("name")
+
+	// build profile (TODO optimize with aggregation or views or something)
+	uid, err := mongo.FindUserByName(ctx, name)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	return _getProfile(c, uid)
+}
+
 func getUserFeed(c echo.Context) error {
 	uname := c.Param("name")
 	ctx := c.Request().Context()
@@ -232,4 +218,35 @@ func _signImages(ctx context.Context, feed []*types.Image) error {
 		}
 	}
 	return nil
+}
+
+func _getProfile(c echo.Context, uid interface{}) error {
+	ctx := c.Request().Context()
+
+	// build profile (TODO optimize with aggregation or views or something)
+	profile, err := mongo.GetUserProfile(ctx, uid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	// sign profile picture
+	if err := bucket.MaybeSignProfilePicture(ctx, profile); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	// craft count
+	count, err := mongo.CountJobsForUser(ctx, uid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	profile.Crafts = int(count)
+	// images
+	imgs, err := mongo.FindImagesForUser(ctx, uid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	if err := bucket.SignImages(ctx, imgs); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	profile.Images = imgs
+
+	return c.JSON(http.StatusOK, profile)
 }
