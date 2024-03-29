@@ -78,7 +78,7 @@ func postRank(c echo.Context) error {
 	if err := mongo.InsertRank(ctx, c.Get("uid"), r.Rank, newRanks); err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
-	return nil
+	return c.JSON(http.StatusOK, newRanks)
 }
 
 func _signImages(ctx context.Context, feed []*types.Image) error {
