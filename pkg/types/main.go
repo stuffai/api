@@ -11,6 +11,7 @@ type Bucket struct {
 
 type Job struct {
 	PromptID   string     `json:"promptID"`
+	Rank       int        `json:"rank"`
 	State      int        `json:"state"`
 	Bucket     Bucket     `json:"-"`
 	DTCreated  time.Time  `json:"dtCreated" bson:"dtCreated"`
@@ -38,4 +39,6 @@ type Image struct {
 	DTModified time.Time  `json:"dtModified"`
 	Bucket     Bucket     `json:"-"`
 	URL        string     `json:"url"`
+	ID         string     `json:"id" bson:"_id"`
+	Rank       int        `json:"rank" bson:"rank"`
 }

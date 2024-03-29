@@ -27,6 +27,7 @@ func InsertJob(ctx context.Context, userID interface{}, promptID string) (string
 		bson.D{
 			{"userID", userID},
 			{"promptID", promptOID},
+			{"rank", 1000},
 			{"state", 0},
 			{"dtCreated", time.Now()},
 			{"dtModified", nil},

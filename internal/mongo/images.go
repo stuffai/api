@@ -42,6 +42,7 @@ var viewProjection = bson.A{
 				{"user.ppBucket", "$userDocs.profile.ppBucket"},
 				{"user.username", "$userDocs.username"},
 				{"state", 1},
+				{"rank", 1},
 				{"bucket", 1},
 				{"dtModified", 1},
 				{"title", "$promptDocs.title"},
