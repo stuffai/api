@@ -66,19 +66,19 @@ func postRank(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	// rank and coerce to map
-	newRanks := rank.Rank(ranks)
-	newRankMap := map[string]int{}
+	deltas := rank.Rank(ranks)
+	deltaMap := map[string]int{}
 	for i, id := range r.Rank {
-		newRankMap[id] = newRanks[i]
+		deltaMap[id] = deltas[i]
 	}
 	// submit to mongo
-	if err := mongo.UpdateImageRanks(ctx, newRankMap); err != nil {
+	if err := mongo.UpdateImageRanks(ctx, deltaMap); err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
-	if err := mongo.InsertRank(ctx, c.Get("uid"), r.Rank, newRanks); err != nil {
+	if err := mongo.InsertRank(ctx, c.Get("uid"), r.Rank, deltas, ranks); err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
-	return c.JSON(http.StatusOK, newRanks)
+	return c.JSON(http.StatusOK, deltas)
 }
 
 func _signImages(ctx context.Context, feed []*types.Image) error {

@@ -20,7 +20,8 @@ func ranksCollection() *mongo.Collection {
 
 type rankedImage struct {
 	ID    primitive.ObjectID `json:"id" bson:"id"`
-	Score int                `json:"score" bson:"score"`
+	Delta int                `json:"delta" bson:"delta"`
+	Prev  int                `json:"prev" bson:"prev"`
 }
 
 type rank struct {
@@ -31,15 +32,15 @@ type rank struct {
 	DTCreated time.Time          `json:"dtCreated" bson:"dtCreated"`
 }
 
-func InsertRank(ctx context.Context, uid interface{}, ranks [3]string, scores [3]int) error {
+func InsertRank(ctx context.Context, uid interface{}, ranks [3]string, deltas, scores [3]int) error {
 	first, _ := primitive.ObjectIDFromHex(ranks[0])
 	second, _ := primitive.ObjectIDFromHex(ranks[1])
 	third, _ := primitive.ObjectIDFromHex(ranks[2])
 	r := &rank{
 		User:      uid.(primitive.ObjectID),
-		First:     rankedImage{ID: first, Score: scores[0]},
-		Second:    rankedImage{ID: second, Score: scores[1]},
-		Third:     rankedImage{ID: third, Score: scores[2]},
+		First:     rankedImage{ID: first, Delta: deltas[0], Prev: scores[0]},
+		Second:    rankedImage{ID: second, Delta: deltas[1], Prev: scores[1]},
+		Third:     rankedImage{ID: third, Delta: deltas[2], Prev: scores[2]},
 		DTCreated: time.Now(),
 	}
 	_, err := ranksCollection().InsertOne(ctx, r)
