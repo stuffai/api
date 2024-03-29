@@ -75,6 +75,9 @@ func postRank(c echo.Context) error {
 	if err := mongo.UpdateImageRanks(ctx, newRankMap); err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
+	if err := mongo.InsertRank(ctx, c.Get("uid"), r.Rank, newRanks); err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
 	return nil
 }
 

@@ -29,7 +29,7 @@ func New() *echo.Echo {
 	e.GET("/users/:name", getUserProfile)
 	e.GET("/users/:name/feed", getUserFeed)
 	e.GET("/rank", getRank)
-	e.POST("/rank", postRank)
+	e.POST("/rank", jwtMiddleware(postRank))
 
 	// Private
 	e.POST("/prompts", postPrompts)
