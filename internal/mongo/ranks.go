@@ -36,7 +36,7 @@ func InsertRank(ctx context.Context, uid interface{}, ranks [3]string, scores [3
 	second, _ := primitive.ObjectIDFromHex(ranks[1])
 	third, _ := primitive.ObjectIDFromHex(ranks[2])
 	r := &rank{
-		//User:      *(uid.(*primitive.ObjectID)),
+		User:      uid.(primitive.ObjectID),
 		First:     rankedImage{ID: first, Score: scores[0]},
 		Second:    rankedImage{ID: second, Score: scores[1]},
 		Third:     rankedImage{ID: third, Score: scores[2]},
