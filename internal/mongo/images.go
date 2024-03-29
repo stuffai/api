@@ -6,6 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -78,7 +79,7 @@ func findImages(ctx context.Context, query interface{}, opt *options.FindOptions
 	return imgs, nil
 }
 
-var orderDescending = bson.D{{"dtModified", -1}}
+var orderDescending = bson.D{{"rank", -1}}
 
 func FindImages(ctx context.Context) ([]*types.Image, error) {
 	return findImages(ctx, bson.D{}, options.Find().SetSort(orderDescending))
@@ -86,6 +87,44 @@ func FindImages(ctx context.Context) ([]*types.Image, error) {
 
 func FindImagesForUser(ctx context.Context, uid interface{}) ([]*types.Image, error) {
 	return findImages(ctx, bson.D{{"user._id", uid}}, options.Find().SetSort(orderDescending))
+}
+
+func FindImageRanksByIDs(ctx context.Context, ids [3]string) ([3]int, error) {
+	out := [3]int{}
+	idobj := make([]primitive.ObjectID, len(ids))
+	for i, id := range ids {
+		obj, _ := primitive.ObjectIDFromHex(id)
+		idobj[i] = obj
+	}
+	imgs, err := findImages(ctx, bson.D{{"_id", bson.D{{"$in", idobj}}}}, options.Find().SetProjection(bson.D{{"rank", 1}}))
+	if err != nil {
+		return out, err
+	}
+	// coerce to dict
+	rankMap := map[string]int{}
+	for _, img := range imgs {
+		rankMap[img.ID] = img.Rank
+	}
+	// look up map and return ranks in order
+	for i, id := range ids {
+		out[i] = rankMap[id]
+	}
+	return out, nil
+}
+
+func UpdateImageRanks(ctx context.Context, rankMap map[string]int) error {
+	updates := []mongo.WriteModel{}
+	for id, rank := range rankMap {
+		oid, _ := primitive.ObjectIDFromHex(id)
+		updates = append(updates, mongo.NewUpdateOneModel().SetFilter(bson.M{"_id": oid}).SetUpdate(bson.M{"$set": bson.M{"rank": rank}}))
+	}
+	opts := options.BulkWrite().SetOrdered(false)
+	_, err := jobsCollection().BulkWrite(context.TODO(), updates, opts)
+	if err != nil {
+		return err
+	}
+	return nil
+
 }
 
 var getRankRandomSamplePipeline = mongo.Pipeline{
