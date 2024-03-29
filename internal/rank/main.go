@@ -13,12 +13,12 @@ func Rank(s [3]int) [3]int {
 	sr.expected()
 	sr.apply()
 	sn := sr.scores
-	return [3]int{sn[0].score, sn[1].score, sn[2].score}
+	return [3]int{sn[0].delta, sn[1].delta, sn[2].delta}
 }
 
 type score struct {
-	score, rank int
-	e           float64
+	score, rank, delta int
+	e                  float64
 }
 
 type stuffRank struct {
@@ -62,14 +62,9 @@ func (r *stuffRank) apply() {
 	s1, s2, s3 := s[0], s[1], s[2]
 
 	// Compute deltas
-	s1d := float64(30 * (1 - s1.e))
-	s3d := float64(-30 * s3.e)
-	s2d := -(s1d + s3d)
-	log.WithFields(log.Fields{"s1d": s1d, "s2d": s2d, "s3d": s3d}).Debug("rank.apply")
-
-	s1.score += int(s1d)
-	s2.score += int(s2d)
-	s3.score += int(s3d)
+	s1.delta = int(30 * (1 - s1.e))
+	s3.delta = int(-30 * s3.e)
+	s2.delta = -(s1.delta + s3.delta)
 }
 
 func e(sOther float64, sSelf int) float64 {
