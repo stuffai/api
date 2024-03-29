@@ -14,6 +14,9 @@ import (
 
 var viewProjection = bson.A{
 	bson.D{
+		{"$match", bson.D{{"state", 1}}},
+	},
+	bson.D{
 		{"$lookup",
 			bson.D{
 				{"from", "prompts"},
@@ -41,7 +44,6 @@ var viewProjection = bson.A{
 				{"user._id", "$userDocs._id"},
 				{"user.ppBucket", "$userDocs.profile.ppBucket"},
 				{"user.username", "$userDocs.username"},
-				{"state", 1},
 				{"rank", 1},
 				{"bucket", 1},
 				{"dtModified", 1},
@@ -79,11 +81,11 @@ func findImages(ctx context.Context, query interface{}, opt *options.FindOptions
 var orderDescending = bson.D{{"dtModified", -1}}
 
 func FindImages(ctx context.Context) ([]*types.Image, error) {
-	return findImages(ctx, bson.D{{"state", 1}}, options.Find().SetSort(orderDescending))
+	return findImages(ctx, bson.D{}, options.Find().SetSort(orderDescending))
 }
 
 func FindImagesForUser(ctx context.Context, uid interface{}) ([]*types.Image, error) {
-	return findImages(ctx, bson.D{{"state", 1}, {"user._id", uid}}, options.Find().SetSort(orderDescending))
+	return findImages(ctx, bson.D{{"user._id", uid}}, options.Find().SetSort(orderDescending))
 }
 
 var getRankRandomSamplePipeline = mongo.Pipeline{
