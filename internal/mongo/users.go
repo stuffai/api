@@ -161,3 +161,11 @@ func UpdateUserProfilePicture(ctx context.Context, uid interface{}, bkt, key str
 	_, err := usersCollection().UpdateByID(ctx, uid, bson.D{{"$set", bson.D{{"profile.ppBucket", types.Bucket{bkt, key}}}}})
 	return err
 }
+
+func IncrementUserVoteCount(ctx context.Context, uid interface{}) error {
+	_, err := usersCollection().UpdateByID(ctx, uid, bson.D{{"$inc", bson.D{{"votes", 1}}}})
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -71,11 +71,15 @@ func postRank(c echo.Context) error {
 	for i, id := range r.Rank {
 		deltaMap[id] = deltas[i]
 	}
-	// submit to mongo
+	// submit to mongo (TODO: use transaction)
+	uid := c.Get("uid")
 	if err := mongo.UpdateImageRanks(ctx, deltaMap); err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
-	if err := mongo.InsertRank(ctx, c.Get("uid"), r.Rank, deltas, ranks); err != nil {
+	if err := mongo.InsertRank(ctx, uid, r.Rank, deltas, ranks); err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err.Error())
+	}
+	if err := mongo.IncrementUserVoteCount(ctx, uid); err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
 	return c.JSON(http.StatusOK, deltas)
