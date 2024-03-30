@@ -47,7 +47,7 @@ type ImageList []*Image
 
 type LeaderboardEntry struct {
 	Username string `json:"username"`
-	PPURL    string `json:"imageURL"`
+	PPURL    string `json:"ppURL" bson:"-"`
 	PPBucket Bucket `json:"-" bson:"ppBucket"`
 	Rank     int    `json:"rank"`
 }
