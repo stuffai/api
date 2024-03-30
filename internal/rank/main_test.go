@@ -88,3 +88,9 @@ func TestRank_OffBy400E1(t *testing.T) {
 	expect := [3]int{7, 0, -7}
 	_testRank(t, in, expect)
 }
+
+func TestRank_A(t *testing.T) {
+	in := [3]int{1326, 1280, 982}
+	expect := [3]int{14, -6, -8}
+	_testRank(t, in, expect)
+}
