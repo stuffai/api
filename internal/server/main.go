@@ -19,17 +19,25 @@ func New() *echo.Echo {
 	e.Use(middleware.Recover())
 
 	// Public
+
+	// feed
+	e.GET("/feed", getFeed)
+	e.GET("/users/:name/feed", getUserFeed)
+
+	// rank
+	e.GET("/rank", getRank)
+	e.POST("/rank", jwtMiddleware(postRank))
+
+	// craft
+	e.POST("/crafts", jwtMiddleware(postCrafts))
+
+	// profile
 	e.POST("/signup", signup)
 	e.POST("/login", login)
-	e.GET("/feed", getFeed)
-	e.POST("/crafts", jwtMiddleware(postCrafts))
 	e.GET("/profile", jwtMiddleware(getProfile))
 	e.PUT("/profile", jwtMiddleware(putProfile))
 	e.POST("/profile/picture", jwtMiddleware(postProfilePicture))
 	e.GET("/users/:name", getUserProfile)
-	e.GET("/users/:name/feed", getUserFeed)
-	e.GET("/rank", getRank)
-	e.POST("/rank", jwtMiddleware(postRank))
 
 	// Private
 	e.POST("/prompts", postPrompts)
