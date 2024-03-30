@@ -81,21 +81,9 @@ func _getProfile(c echo.Context, uid interface{}) error {
 	if err := bucket.MaybeSignURL(ctx, profile); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	// craft count
-	count, err := mongo.CountJobsForUser(ctx, uid)
-	if err != nil {
+	if err := bucket.SignURLs(ctx, profile.Images); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	profile.Crafts = int(count)
-	// images
-	imgs, err := mongo.FindImagesForUser(ctx, uid)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-	if err := bucket.SignURLs(ctx, imgs); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-	}
-	profile.Images = imgs
 
 	return c.JSON(http.StatusOK, profile)
 }

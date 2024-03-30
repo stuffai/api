@@ -16,6 +16,7 @@ type UserPrivate struct {
 	DTDeleted    *time.Time `bson:"dt_deleted,omitempty"` // Optional, for tombstoning
 
 	Profile *UserProfile `bson:"profile"`
+	Votes   int          `bson:"votes"`
 }
 
 // UserPublic represents the user information that can be exposed over the API.
@@ -42,14 +43,14 @@ func (u *UserPrivate) ToPublic() UserPublic {
 }
 
 type UserProfile struct {
-	Username  string   `json:"username" bson:"-"`
-	PPURL     string   `json:"ppURL" bson:"-"`
-	PPBucket  Bucket   `json:"-" bson:"ppBucket"`
-	Name      string   `json:"name" bson:"name"`
-	Bio       string   `json:"bio" bson:"bio"`
-	Pronouns  string   `json:"pronouns" bson:"pronouns"`
-	Crafts    int      `json:"crafts" bson:"-"`
-	Followers int      `json:"followers" bson:"-"`
-	Following int      `json:"following" bson:"-"`
-	Images    []*Image `json:"images" bson:"-"`
+	Username string   `json:"username" bson:"-"`
+	PPURL    string   `json:"ppURL" bson:"-"`
+	PPBucket Bucket   `json:"-" bson:"ppBucket"`
+	Name     string   `json:"name" bson:"name"`
+	Bio      string   `json:"bio" bson:"bio"`
+	Pronouns string   `json:"pronouns" bson:"pronouns"`
+	Crafts   int      `json:"crafts" bson:"crafts"`
+	Votes    int      `json:"votes" bson:"votes"`
+	Rank     int      `json:"rank" bson:"rank"`
+	Images   []*Image `json:"images" bson:"images"`
 }

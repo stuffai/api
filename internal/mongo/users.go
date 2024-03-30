@@ -15,6 +15,37 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func userProfileProjection(uid interface{}) bson.A {
+	return bson.A{
+		bson.D{{"$match", bson.D{{"_id", uid}}}},
+		bson.D{{"$lookup",
+			bson.D{
+				{"from", "images"},
+				{"localField", "_id"},
+				{"foreignField", "user._id"},
+				{"as", "images"}}},
+		},
+		bson.D{{"$set",
+			bson.D{
+				{"images", bson.D{{"$sortArray", bson.D{{"input", "$images"}, {"sortBy", bson.D{{"rank", -1}}}}}}},
+			}}},
+		bson.D{{"$addFields",
+			bson.D{
+				{"rank", bson.D{{"$arrayElemAt", bson.A{"$images", 0}}}}}}},
+		bson.D{{"$project",
+			bson.D{
+				{"_id", 1},
+				{"username", 1},
+				{"ppBucket", "$profile.ppBucket"},
+				{"name", "$profile.name"},
+				{"bio", "$profile.bio"},
+				{"pronouns", "profile.pronouns"},
+				{"crafts", bson.D{{"$size", "$images"}}},
+				{"votes", 1},
+				{"rank", "$rank.rank"},
+				{"images", 1}}}}}
+}
+
 func usersCollection() *mongo.Collection {
 	return db().Collection("users")
 }
@@ -98,13 +129,19 @@ func FindUserByName(ctx context.Context, username string) (primitive.ObjectID, e
 
 // GetUserProfile
 func GetUserProfile(ctx context.Context, uid interface{}) (*types.UserProfile, error) {
-	var user types.UserPrivate
-	if err := usersCollection().FindOne(ctx, bson.M{"_id": uid}, options.FindOne().SetProjection(bson.M{"username": 1, "profile": 1})).Decode(&user); err != nil {
+	out := []*types.UserProfile{}
+	cur, err := usersCollection().Aggregate(ctx, userProfileProjection(uid), options.Aggregate())
+	if err != nil {
 		log.WithError(err).Error("mongo.GetUserProfile")
 		return nil, err
 	}
-	user.Profile.Username = user.Username // little hacky but we'll live
-	return user.Profile, nil
+	if err := cur.All(ctx, &out); err != nil {
+		return nil, err
+	}
+	if len(out) == 0 {
+		return nil, nil
+	}
+	return out[0], nil
 }
 
 // UpdateUserProfile updates a user's profile with the given input object
