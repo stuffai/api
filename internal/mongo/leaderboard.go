@@ -31,7 +31,7 @@ var leaderboardProjection = bson.A{
 			{"_id", "$userData._id"},
 			{"username", "$userData.username"},
 			{"rank", "$topImage.rank"},
-			{"ppBucket", "$userData.profile.bucket"}}}},
+			{"ppBucket", "$userData.profile.ppBucket"}}}},
 	bson.D{{"$sort",
 		bson.D{
 			{"rank", -1},
