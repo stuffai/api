@@ -29,6 +29,14 @@ func (i *Image) SetURL(url string) {
 	i.URL = url
 }
 
+func (l ImageList) SignableUserProfiles() []Signable {
+	out := make([]Signable, len(l))
+	for i, v := range l {
+		out[i] = v.User
+	}
+	return out
+}
+
 func (u *UserProfile) GetBucket() Bucket {
 	return u.PPBucket
 }

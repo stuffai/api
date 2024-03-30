@@ -78,7 +78,7 @@ func _getProfile(c echo.Context, uid interface{}) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	// sign profile picture
-	if err := bucket.MaybeSignProfilePicture(ctx, profile); err != nil {
+	if err := bucket.MaybeSignURL(ctx, profile); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	// craft count
@@ -92,7 +92,7 @@ func _getProfile(c echo.Context, uid interface{}) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	if err := bucket.SignImages(ctx, imgs); err != nil {
+	if err := bucket.SignURLs(ctx, imgs); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	profile.Images = imgs

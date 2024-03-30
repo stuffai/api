@@ -81,16 +81,14 @@ func postRank(c echo.Context) error {
 	return c.JSON(http.StatusOK, deltas)
 }
 
-func _signImages(ctx context.Context, feed []*types.Image) error {
+func _signImages(ctx context.Context, feed types.ImageList) error {
 	if err := bucket.SignURLs(ctx, feed); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	// TODO: This is likely to cause performance issues. Invest in a better solution.
 	// - maybe a support field/endpoint containing a mapping of username/id to ppURLs
-	for _, img := range feed {
-		if err := bucket.MaybeSignProfilePicture(ctx, img.User); err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-		}
+	if err := bucket.MaybeSignURLs(ctx, feed.SignableUserProfiles()); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return nil
 }

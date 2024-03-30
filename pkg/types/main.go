@@ -43,6 +43,8 @@ type Image struct {
 	Rank       int        `json:"rank" bson:"rank"`
 }
 
+type ImageList []*Image
+
 type LeaderboardEntry struct {
 	Username string `json:"username"`
 	PPURL    string `json:"imageURL"`
