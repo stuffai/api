@@ -21,6 +21,14 @@ type Signable interface {
 	SetURL(string)
 }
 
+func (i *Image) GetBucket() Bucket {
+	return i.Bucket
+}
+
+func (i *Image) SetURL(url string) {
+	i.URL = url
+}
+
 func (u *UserProfile) GetBucket() Bucket {
 	return u.PPBucket
 }
@@ -34,5 +42,13 @@ func (u *ImageUser) GetBucket() Bucket {
 }
 
 func (u *ImageUser) SetURL(url string) {
+	u.PPURL = url
+}
+
+func (u *LeaderboardEntry) GetBucket() Bucket {
+	return u.PPBucket
+}
+
+func (u *LeaderboardEntry) SetURL(url string) {
 	u.PPURL = url
 }

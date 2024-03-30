@@ -42,3 +42,10 @@ type Image struct {
 	ID         string     `json:"id" bson:"_id"`
 	Rank       int        `json:"rank" bson:"rank"`
 }
+
+type LeaderboardEntry struct {
+	Username string `json:"username"`
+	PPURL    string `json:"imageURL"`
+	PPBucket Bucket `json:"-" bson:"ppBucket"`
+	Rank     int    `json:"rank"`
+}

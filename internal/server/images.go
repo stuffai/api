@@ -82,7 +82,7 @@ func postRank(c echo.Context) error {
 }
 
 func _signImages(ctx context.Context, feed []*types.Image) error {
-	if err := bucket.SignImages(ctx, feed); err != nil {
+	if err := bucket.SignURLs(ctx, feed); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	// TODO: This is likely to cause performance issues. Invest in a better solution.

@@ -78,13 +78,14 @@ func SignURL(ctx context.Context, bucket, key string) (string, error) {
 	return signURLGCS(bucket, key)
 }
 
-func SignImages(ctx context.Context, imgs []*types.Image) error {
-	for _, img := range imgs {
-		signedURL, err := SignURL(ctx, img.Bucket.Name, img.Bucket.Key)
+func SignURLs[T types.Signable](ctx context.Context, docs []T) error {
+	for _, doc := range docs {
+		bucket := doc.GetBucket()
+		signedURL, err := SignURL(ctx, bucket.Name, bucket.Key)
 		if err != nil {
 			return err
 		}
-		img.URL = signedURL
+		doc.SetURL(signedURL)
 	}
 	return nil
 }
