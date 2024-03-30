@@ -39,7 +39,7 @@ func userProfileProjection(uid interface{}) bson.A {
 				{"ppBucket", "$profile.ppBucket"},
 				{"name", "$profile.name"},
 				{"bio", "$profile.bio"},
-				{"pronouns", "profile.pronouns"},
+				{"pronouns", "$profile.pronouns"},
 				{"crafts", bson.D{{"$size", "$images"}}},
 				{"votes", 1},
 				{"rank", "$rank.rank"},
