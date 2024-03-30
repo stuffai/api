@@ -31,6 +31,9 @@ func New() *echo.Echo {
 	// craft
 	e.POST("/crafts", jwtMiddleware(postCrafts))
 
+	// leaderboard
+	e.GET("/leaderboard", getLeaderboard)
+
 	// profile
 	e.POST("/signup", signup)
 	e.POST("/login", login)
