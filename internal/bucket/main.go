@@ -114,6 +114,8 @@ func uploadImageMinio(ctx context.Context, in *bytes.Buffer, bkt, key string) er
 
 func uploadImageGCS(ctx context.Context, in *bytes.Buffer, bkt, key string) error {
 	wc := gcsClient.Bucket(bkt).Object(key).NewWriter(ctx)
+	defer wc.Close()
+
 	if _, err := io.Copy(wc, in); err != nil {
 		return err
 	}
