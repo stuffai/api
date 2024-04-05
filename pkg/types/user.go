@@ -54,3 +54,13 @@ type UserProfile struct {
 	Rank     int      `json:"rank" bson:"rank"`
 	Images   []*Image `json:"images" bson:"images"`
 }
+
+type FCMToken struct {
+	Token   string              `json:"fcm"`
+	Entries map[string]FCMEntry `json:"-" bson:"fcm"`
+}
+
+type FCMEntry struct {
+	Token     string    `bson:"token"`
+	UpdatedAt time.Time `bson:"updatedAt"`
+}

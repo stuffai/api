@@ -2,6 +2,8 @@ package mongo
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -168,4 +170,24 @@ func IncrementUserVoteCount(ctx context.Context, uid interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func UpdateUserFCMToken(ctx context.Context, uid interface{}, token string) error {
+	hash := md5.Sum([]byte(token))
+	entry := types.FCMEntry{Token: token, UpdatedAt: time.Now()}
+	_, err := usersCollection().UpdateByID(ctx, uid, bson.D{{"$set", bson.D{{"fcm", bson.D{{hex.EncodeToString(hash[:]), entry}}}}}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetUserFCMTokens(ctx context.Context, uid interface{}) (*types.FCMToken, error) {
+	collection := usersCollection()
+	tokens := new(types.FCMToken)
+	err := collection.FindOne(ctx, bson.D{{"_id", uid}}, options.FindOne().SetProjection(bson.D{{"fcm", 1}})).Decode(&tokens)
+	if err != nil {
+		return nil, err
+	}
+	return tokens, nil
 }

@@ -41,6 +41,8 @@ func New() *echo.Echo {
 	e.PUT("/profile", jwtMiddleware(putProfile))
 	e.POST("/profile/picture", jwtMiddleware(postProfilePicture))
 	e.GET("/users/:name", getUserProfile)
+	e.POST("/fcm", jwtMiddleware(postFCM))
+	e.GET("/notify", jwtMiddleware(notify))
 
 	// Private
 	e.POST("/prompts", postPrompts)
