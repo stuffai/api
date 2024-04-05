@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	topicID string
-	client  *pubsub.Client
+	topicIDGenerate string
+	client          *pubsub.Client
 )
 
 func init() {
@@ -22,13 +22,13 @@ func init() {
 		panic(err)
 	}
 
-	topicID = config.PubSubTopicID()
+	topicIDGenerate = config.PubSubTopicIDGenerate()
 }
 
-func Publish(ctx context.Context, b []byte) error {
+func PublishGenerate(ctx context.Context, b []byte) error {
 	msg := &pubsub.Message{Data: b}
 
-	_, err := client.Topic(topicID).Publish(ctx, msg).Get(ctx)
+	_, err := client.Topic(topicIDGenerate).Publish(ctx, msg).Get(ctx)
 	if err != nil {
 		return err
 	}

@@ -32,7 +32,7 @@ func postCrafts(c echo.Context) error {
 	}
 
 	// Publish to queue.
-	if err := queue.Publish(context.Background(), []byte(jobID)); err != nil {
+	if err := queue.PublishGenerate(context.Background(), []byte(jobID)); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusAccepted, map[string]interface{}{"jobID": jobID})

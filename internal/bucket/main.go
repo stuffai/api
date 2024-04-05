@@ -58,7 +58,7 @@ func init() {
 	}
 
 	// for local
-	endpoint := "192.168.123.29:9000"
+	endpoint := "192.168.129.29:9000"
 	accessKeyID := "9b2yTqkrIBlf2TPHDL24"
 	secretAccessKey := "UX1fJraecnPD32W00mdpbFI5vi2MUzc6hn8lv7Jd"
 	useSSL := false

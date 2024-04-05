@@ -52,8 +52,8 @@ func ProjectID() string {
 	return projectID
 }
 
-func PubSubTopicID() string {
-	return projectID
+func PubSubTopicIDGenerate() string {
+	return "generate"
 }
 
 func MongoURI() string {
