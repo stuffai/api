@@ -14,7 +14,7 @@ import (
 
 func notify(c echo.Context) error {
 	ctx := context.Background()
-	app, err := firebase.NewApp(ctx, &firebase.Config{ProjectID: "stuffai-local"})
+	app, err := firebase.NewApp(ctx, &firebase.Config{ProjectID: "stuffai-local-419503"})
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}

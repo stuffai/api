@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/kelseyhightower/envconfig"
@@ -9,9 +8,10 @@ import (
 )
 
 type obj struct {
-	Env      string
-	MongoURI string `envconfig:"MONGO_URI"`
-	JWTKey   string `envconfig:"JWT_KEY"`
+	Env       string
+	MongoURI  string `envconfig:"MONGO_URI"`
+	JWTKey    string `envconfig:"JWT_KEY"`
+	ProjectID string `envconfig:"PROJECT_ID"`
 }
 
 func (o obj) MongoHost() string {
@@ -20,8 +20,8 @@ func (o obj) MongoHost() string {
 }
 
 var (
-	cfg       obj
-	projectID string
+	cfg        obj
+	bucketName string
 )
 
 func init() {
@@ -35,7 +35,7 @@ func init() {
 	if cfg.JWTKey == "" {
 		panic("config.init: env.STUFFAI_API_JWT_KEY required")
 	}
-	projectID = fmt.Sprintf("stuffai-%s", cfg.Env)
+	bucketName = "stuffai-" + Env()
 
 	log.WithField("mongo", cfg.MongoHost()).Info("config.init: loaded")
 }
@@ -48,8 +48,12 @@ func IsLocalEnv() bool {
 	return cfg.Env == "local"
 }
 
+func BucketName() string {
+	return bucketName
+}
+
 func ProjectID() string {
-	return projectID
+	return cfg.ProjectID
 }
 
 func PubSubTopicIDGenerate() string {
