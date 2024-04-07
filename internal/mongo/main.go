@@ -33,6 +33,11 @@ func init() {
 			panic("mongo: failed to initialize images view: " + err.Error())
 		}
 	}
+
+	// ensure indicies
+	if err := initFriendsCollection(ctx); err != nil {
+		panic("mongo: failed to ensure index: " + err.Error())
+	}
 }
 
 func Shutdown() {
