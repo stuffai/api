@@ -26,10 +26,10 @@ func New() *echo.Echo {
 
 	// rank
 	e.GET("/rank", getRank)
-	e.POST("/rank", jwtMiddleware(postRank))
+	e.POST("/rank", jwtMiddleware(postRank, true))
 
 	// craft
-	e.POST("/crafts", jwtMiddleware(postCrafts))
+	e.POST("/crafts", jwtMiddleware(postCrafts, true))
 
 	// leaderboard
 	e.GET("/leaderboard", getLeaderboard)
@@ -37,17 +37,17 @@ func New() *echo.Echo {
 	// profile
 	e.POST("/signup", signup)
 	e.POST("/login", login)
-	e.GET("/profile", jwtMiddleware(getProfile))
-	e.PUT("/profile", jwtMiddleware(putProfile))
-	e.POST("/profile/picture", jwtMiddleware(postProfilePicture))
-	e.GET("/users/:name", optionalJwtMiddleware(getUserProfile))
-	e.POST("/fcm", jwtMiddleware(postFCM))
-	e.GET("/notify", jwtMiddleware(notify))
+	e.GET("/profile", jwtMiddleware(getProfile, true))
+	e.PUT("/profile", jwtMiddleware(putProfile, true))
+	e.POST("/profile/picture", jwtMiddleware(postProfilePicture, true))
+	e.GET("/users/:name", jwtMiddleware(getUserProfile, false))
+	e.POST("/fcm", jwtMiddleware(postFCM, true))
+	e.GET("/notify", jwtMiddleware(notify, true))
 
 	// friends
-	e.GET("/friends", jwtMiddleware(getFriends))
-	e.GET("/friends/requests", jwtMiddleware(getFriendRequests))
-	e.POST("/friends/requests", jwtMiddleware(postFriendRequests))
+	e.GET("/friends", jwtMiddleware(getFriends, true))
+	e.GET("/friends/requests", jwtMiddleware(getFriendRequests, true))
+	e.POST("/friends/requests", jwtMiddleware(postFriendRequests, true))
 
 	// Private
 	e.POST("/prompts", postPrompts)
