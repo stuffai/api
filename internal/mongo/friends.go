@@ -7,12 +7,18 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stuff-ai/api/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func friendsCollection() *mongo.Collection {
 	return db().Collection("users_friends")
+}
+
+type friend struct {
+	From *primitive.ObjectID
+	To   *primitive.ObjectID
 }
 
 func initFriendsCollection(ctx context.Context) error {

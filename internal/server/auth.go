@@ -102,6 +102,33 @@ func signup(c echo.Context) error {
 	return c.JSON(http.StatusCreated, echo.Map{"token": tokenString})
 }
 
+// optionalJwtMiddleware validates JWT tokens for protected routes
+func optionalJwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		authHeader := c.Request().Header.Get("Authorization")
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		claims := &JWTClaims{}
+
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+		log.WithField("token", tokenString).Info("auth.jwt") // TODO(IMPORTANT): remove
+
+		// add username to the context
+		username := token.Claims.(*JWTClaims).Username
+		uid, err := mongo.FindUserByName(c.Request().Context(), username)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Backend failure")
+		}
+		c.Set("uid", uid)
+		c.Set("username", username)
+
+		// Token is valid, you can proceed with the request and also use the claims
+		// For example, to get the username: claims.Username
+		return next(c)
+	}
+}
+
 // jwtMiddleware validates JWT tokens for protected routes
 func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {

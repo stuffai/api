@@ -11,7 +11,8 @@ import (
 )
 
 func getProfile(c echo.Context) error {
-	return _getProfile(c, c.Get("uid"))
+	uid := c.Get("uid")
+	return _getProfile(c, uid, uid)
 }
 
 func putProfile(c echo.Context) error {
@@ -66,14 +67,14 @@ func getUserProfile(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return _getProfile(c, uid)
+	return _getProfile(c, uid, c.Get("uid"))
 }
 
-func _getProfile(c echo.Context, uid interface{}) error {
+func _getProfile(c echo.Context, getUID, requestUID interface{}) error {
 	ctx := c.Request().Context()
 
 	// build profile (TODO optimize with aggregation or views or something)
-	profile, err := mongo.GetUserProfile(ctx, uid)
+	profile, err := mongo.GetUserProfile(ctx, getUID, requestUID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

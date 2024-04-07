@@ -130,9 +130,9 @@ func FindUserByName(ctx context.Context, username string) (primitive.ObjectID, e
 }
 
 // GetUserProfile
-func GetUserProfile(ctx context.Context, uid interface{}) (*types.UserProfile, error) {
+func GetUserProfile(ctx context.Context, getUID, requestUID interface{}) (*types.UserProfile, error) {
 	out := []*types.UserProfile{}
-	cur, err := usersCollection().Aggregate(ctx, userProfileProjection(uid), options.Aggregate())
+	cur, err := usersCollection().Aggregate(ctx, userProfileProjection(getUID), options.Aggregate())
 	if err != nil {
 		log.WithError(err).Error("mongo.GetUserProfile")
 		return nil, err
@@ -143,7 +143,56 @@ func GetUserProfile(ctx context.Context, uid interface{}) (*types.UserProfile, e
 	if len(out) == 0 {
 		return nil, nil
 	}
-	return out[0], nil
+
+	//
+	// FriendStatus (TODO: testingggg)
+	profile := out[0]
+	logger := log.WithField("profile", profile).WithField("method", "mongo.GetUserProfile")
+	if requestUID == nil {
+		logger.Info("anon")
+		// FriendStatus = Anon
+		return profile, nil
+	} else if getUID.(primitive.ObjectID).Hex() == requestUID.(primitive.ObjectID).Hex() {
+		logger.Info("self")
+		// FriendStatus = Self
+		profile.FriendStatus = types.FriendStatusSelf
+		return profile, nil
+	}
+
+	rels := []*friend{}
+	cur, err = friendsCollection().Find(ctx, bson.D{{"$or", bson.A{
+		bson.D{{"from", requestUID}, {"to", getUID}},
+		bson.D{{"from", getUID}, {"to", requestUID}},
+	}}}, options.Find())
+	if err != nil {
+		return nil, err
+	}
+	if err := cur.All(ctx, &rels); err != nil {
+		return nil, err
+	}
+
+	if len(rels) == 0 {
+		logger.Info("anon: no rel")
+		// FriendStatus = Anon
+		return profile, nil
+	} else if len(rels) == 2 {
+		logger.Info("friends")
+		// FriendStatus = Friends
+		profile.FriendStatus = types.FriendStatusFriend
+		return profile, nil
+	}
+
+	// FriendStatus = RequestedSent
+	if rels[0].From.Hex() == requestUID.(primitive.ObjectID).Hex() {
+		logger.Info("requested sent")
+		profile.FriendStatus = types.FriendStatusRequestedSent
+		return profile, nil
+	}
+
+	logger.Info("requested received")
+	// FriendStatus = RequestedReceived
+	profile.FriendStatus = types.FriendStatusRequestedReceived
+	return profile, nil
 }
 
 // UpdateUserProfile updates a user's profile with the given input object

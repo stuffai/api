@@ -43,17 +43,28 @@ func (u *UserPrivate) ToPublic() UserPublic {
 }
 
 type UserProfile struct {
-	Username string   `json:"username" bson:"username"`
-	PPURL    string   `json:"ppURL" bson:"-"`
-	PPBucket Bucket   `json:"-" bson:"ppBucket"`
-	Name     string   `json:"name" bson:"name"`
-	Bio      string   `json:"bio" bson:"bio"`
-	Pronouns string   `json:"pronouns" bson:"pronouns"`
-	Crafts   int      `json:"crafts" bson:"crafts"`
-	Votes    int      `json:"votes" bson:"votes"`
-	Rank     int      `json:"rank" bson:"rank"`
-	Images   []*Image `json:"images" bson:"images"`
+	Username     string       `json:"username" bson:"username"`
+	PPURL        string       `json:"ppURL" bson:"-"`
+	PPBucket     Bucket       `json:"-" bson:"ppBucket"`
+	Name         string       `json:"name" bson:"name"`
+	Bio          string       `json:"bio" bson:"bio"`
+	Pronouns     string       `json:"pronouns" bson:"pronouns"`
+	Crafts       int          `json:"crafts" bson:"crafts"`
+	Votes        int          `json:"votes" bson:"votes"`
+	Rank         int          `json:"rank" bson:"rank"`
+	Images       []*Image     `json:"images" bson:"images"`
+	FriendStatus FriendStatus `json:"friendStatus" bson:"friendStatus"`
 }
+
+type FriendStatus int
+
+const (
+	FriendStatusAnon = FriendStatus(iota)
+	FriendStatusSelf
+	FriendStatusRequestedSent
+	FriendStatusRequestedReceived
+	FriendStatusFriend
+)
 
 type FCMToken struct {
 	Token   string              `json:"fcm"`
