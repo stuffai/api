@@ -91,7 +91,7 @@ func SignURLs[T types.Signable](ctx context.Context, docs []T) error {
 }
 
 func ppBucketKey(username string) (string, string) {
-	return config.ProjectID(), fmt.Sprintf("profiles/%s/%s", username, uuid.New().String())
+	return config.BucketName(), fmt.Sprintf("profiles/%s/%s", username, uuid.New().String())
 }
 
 // UploadImage uploads the image and returns the bucket and key where it's stored.
