@@ -60,6 +60,10 @@ func PubSubTopicIDGenerate() string {
 	return "generate"
 }
 
+func PubSubTopicIDNotify() string {
+	return "notify"
+}
+
 func MongoURI() string {
 	return cfg.MongoURI
 }

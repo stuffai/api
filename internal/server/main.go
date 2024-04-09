@@ -49,6 +49,11 @@ func New() *echo.Echo {
 	e.GET("/friends/requests", jwtMiddleware(getFriendRequests, true))
 	e.POST("/friends/requests", jwtMiddleware(postFriendRequests, true))
 
+	// notifs
+	e.GET("/notifications", jwtMiddleware(getNotifications, true))
+	// e.POST("/notifications", jwtMiddleware(postNotifications, true))
+	e.PUT("/notifications/:id", jwtMiddleware(putNotification, true))
+
 	// Private
 	e.POST("/prompts", postPrompts)
 	e.GET("/prompts/rand", getPromptRand)

@@ -36,7 +36,10 @@ func init() {
 
 	// ensure indicies
 	if err := initFriendsCollection(ctx); err != nil {
-		panic("mongo: failed to ensure index: " + err.Error())
+		panic("mongo: failed to ensure friends collection index: " + err.Error())
+	}
+	if err := initNotificationsCollection(ctx); err != nil {
+		panic("mongo: failed to ensure notifs collection index: " + err.Error())
 	}
 }
 

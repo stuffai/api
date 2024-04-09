@@ -10,6 +10,7 @@ import (
 
 var (
 	topicIDGenerate string
+	topicIDNotify   string
 	client          *pubsub.Client
 )
 
@@ -23,12 +24,23 @@ func init() {
 	}
 
 	topicIDGenerate = config.PubSubTopicIDGenerate()
+	topicIDNotify = config.PubSubTopicIDNotify()
 }
 
 func PublishGenerate(ctx context.Context, b []byte) error {
 	msg := &pubsub.Message{Data: b}
 
 	_, err := client.Topic(topicIDGenerate).Publish(ctx, msg).Get(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func PublishNotify(ctx context.Context, b []byte) error {
+	msg := &pubsub.Message{Data: b}
+
+	_, err := client.Topic(topicIDNotify).Publish(ctx, msg).Get(ctx)
 	if err != nil {
 		return err
 	}
