@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/stuff-ai/api/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -19,7 +20,11 @@ func initNotificationsCollection(ctx context.Context) error {
 	_, err := notificationsCollection().Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.D{{"userID", 1}}, Options: options.Index().SetUnique(false),
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	log.Info("mongo.initNotificationsCollection: success")
+	return nil
 }
 
 func InsertNotification(ctx context.Context, kind types.NotificationKind, data, uid interface{}) error {
@@ -30,7 +35,7 @@ func InsertNotification(ctx context.Context, kind types.NotificationKind, data, 
 }
 
 func GetNotifications(ctx context.Context, uid interface{}) ([]*types.Notification, error) {
-	cur, err := notificationsCollection().Find(ctx, bson.D{{"userID", uid}})
+	cur, err := notificationsCollection().Find(ctx, bson.D{{"userID", uid}}, options.Find().SetSort(bson.D{{"dtCreated", -1}}))
 	if err != nil {
 		return nil, err
 	}

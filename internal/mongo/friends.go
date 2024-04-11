@@ -26,7 +26,11 @@ func initFriendsCollection(ctx context.Context) error {
 		{Keys: bson.D{{"from", 1}}, Options: options.Index().SetUnique(false)},
 		{Keys: bson.D{{"from", 1}, {"to", 1}}, Options: options.Index().SetUnique(true)},
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	log.Info("mongo.initFriendsCollection: success")
+	return nil
 }
 
 func bsonDFriendsFromTo(fromUserID, toUserID interface{}) bson.D {
