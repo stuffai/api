@@ -5,13 +5,18 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/stuff-ai/api/internal/bucket"
 	"github.com/stuff-ai/api/internal/mongo"
 )
 
 func getNotifications(c echo.Context) error {
 	uid := c.Get("uid")
-	notifs, err := mongo.GetNotifications(c.Request().Context(), uid)
+	ctx := c.Request().Context()
+	notifs, err := mongo.GetNotifications(ctx, uid)
 	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	if err := bucket.MaybeSignURLs(ctx, notifs); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, notifs)

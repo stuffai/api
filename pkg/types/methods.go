@@ -60,3 +60,27 @@ func (u *LeaderboardEntry) GetBucket() Bucket {
 func (u *LeaderboardEntry) SetURL(url string) {
 	u.PPURL = url
 }
+
+func (m SignableMap) GetBucket() Bucket {
+	bucket, ok := m["bucket"].(SignableMap)
+	if !ok {
+		return Bucket{}
+	}
+	return Bucket{
+		Name: bucket["name"].(string),
+		Key:  bucket["key"].(string),
+	}
+}
+
+func (m SignableMap) SetURL(url string) {
+	m["imgURL"] = url
+	delete(m, "bucket")
+}
+
+func (n *Notification) GetBucket() Bucket {
+	return n.Data.GetBucket()
+}
+
+func (n *Notification) SetURL(url string) {
+	n.Data.SetURL(url)
+}
