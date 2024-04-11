@@ -147,13 +147,10 @@ func GetUserProfile(ctx context.Context, getUID, requestUID interface{}) (*types
 	//
 	// FriendStatus (TODO: testingggg)
 	profile := out[0]
-	logger := log.WithField("profile", profile).WithField("method", "mongo.GetUserProfile")
 	if requestUID == nil {
-		logger.Info("anon")
 		// FriendStatus = Anon
 		return profile, nil
 	} else if getUID.(primitive.ObjectID).Hex() == requestUID.(primitive.ObjectID).Hex() {
-		logger.Info("self")
 		// FriendStatus = Self
 		profile.FriendStatus = types.FriendStatusSelf
 		return profile, nil
@@ -172,11 +169,9 @@ func GetUserProfile(ctx context.Context, getUID, requestUID interface{}) (*types
 	}
 
 	if len(rels) == 0 {
-		logger.Info("anon: no rel")
 		// FriendStatus = Anon
 		return profile, nil
 	} else if len(rels) == 2 {
-		logger.Info("friends")
 		// FriendStatus = Friends
 		profile.FriendStatus = types.FriendStatusFriend
 		return profile, nil
@@ -184,12 +179,10 @@ func GetUserProfile(ctx context.Context, getUID, requestUID interface{}) (*types
 
 	// FriendStatus = RequestedSent
 	if rels[0].From.Hex() == requestUID.(primitive.ObjectID).Hex() {
-		logger.Info("requested sent")
 		profile.FriendStatus = types.FriendStatusRequestedSent
 		return profile, nil
 	}
 
-	logger.Info("requested received")
 	// FriendStatus = RequestedReceived
 	profile.FriendStatus = types.FriendStatusRequestedReceived
 	return profile, nil
