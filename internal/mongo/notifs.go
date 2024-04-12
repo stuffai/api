@@ -27,11 +27,11 @@ func initNotificationsCollection(ctx context.Context) error {
 	return nil
 }
 
-func InsertNotification(ctx context.Context, kind types.NotificationKind, data, uid interface{}) error {
-	_, err := notificationsCollection().InsertOne(ctx, bson.D{
+func InsertNotification(ctx context.Context, kind types.NotificationKind, data, uid interface{}) (primitive.ObjectID, error) {
+	result, err := notificationsCollection().InsertOne(ctx, bson.D{
 		{"userID", uid}, {"kind", kind}, {"data", data}, {"read", false}, {"dtCreated", time.Now()},
 	})
-	return err
+	return result.InsertedID.(primitive.ObjectID), err
 }
 
 func GetNotifications(ctx context.Context, uid interface{}) ([]*types.Notification, error) {

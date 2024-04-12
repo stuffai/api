@@ -8,6 +8,8 @@ import (
 
 	"github.com/stuff-ai/api/internal/bucket"
 	"github.com/stuff-ai/api/internal/mongo"
+	"github.com/stuff-ai/api/internal/queue"
+	"github.com/stuff-ai/api/pkg/types"
 	"github.com/stuff-ai/api/pkg/types/api"
 )
 
@@ -59,11 +61,21 @@ func postFriendRequests(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
+	username := c.Get("username")
 	if exists {
 		// Check accepted status
 		if req.Accepted {
 			if err := mongo.AcceptFriendRequest(ctx, uid, friendUID); err != nil {
 				logger.WithError(err).Error("mongo.AcceptFriendRequest")
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
+			}
+			notifID, err := mongo.InsertNotification(ctx, types.NotificationKindFriendAccepted, types.SignableMap{"id": uid, "user": username}, friendUID)
+			if err != nil {
+				logger.WithError(err).Error("mongo.insertNotification(friendAccept)")
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
+			}
+			if err := queue.PublishNotify(ctx, []byte(notifID.Hex())); err != nil {
+				logger.WithError(err).Error("queue.PublishNotify(friendAccept)")
 				return echo.NewHTTPError(http.StatusInternalServerError, err)
 			}
 			return c.JSON(http.StatusOK, "Accept OK")
@@ -78,6 +90,15 @@ func postFriendRequests(c echo.Context) error {
 	// Create friend request
 	if err := mongo.InsertFriendRequest(ctx, uid, friendUID); err != nil {
 		logger.WithError(err).Error("mongo.InsertFriendRequest")
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	notifID, err := mongo.InsertNotification(ctx, types.NotificationKindFriendRequested, types.SignableMap{"id": uid, "user": username}, friendUID)
+	if err != nil {
+		logger.WithError(err).Error("mongo.insertNotification(friendRequested)")
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	if err := queue.PublishNotify(ctx, []byte(notifID.Hex())); err != nil {
+		logger.WithError(err).Error("queue.PublishNotify(friendRequested)")
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, "Request OK")
