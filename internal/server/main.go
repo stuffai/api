@@ -42,6 +42,7 @@ func New() *echo.Echo {
 	e.POST("/profile/picture", jwtMiddleware(postProfilePicture, true))
 	e.GET("/users/:name", jwtMiddleware(getUserProfile, false))
 	e.POST("/fcm", jwtMiddleware(postFCM, true))
+	e.DELETE("/fcm", jwtMiddleware(deleteFCM, true))
 	e.GET("/notify", jwtMiddleware(notify, true))
 
 	// friends

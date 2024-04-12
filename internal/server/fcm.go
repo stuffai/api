@@ -47,7 +47,19 @@ func postFCM(c echo.Context) error {
 	if err := c.Bind(t); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	if err := mongo.UpdateUserFCMToken(ctx, c.Get("uid"), t.Token); err != nil {
+	if err := mongo.UpdateUserFCMToken(ctx, c.Get("uid"), t); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusOK, "OK")
+}
+
+func deleteFCM(c echo.Context) error {
+	t := new(types.FCMToken)
+	ctx := c.Request().Context()
+	if err := c.Bind(t); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if err := mongo.DeleteUserFCMToken(ctx, c.Get("uid"), t); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, "OK")

@@ -2,8 +2,6 @@ package mongo
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -214,10 +212,10 @@ func IncrementUserVoteCount(ctx context.Context, uid interface{}) error {
 	return nil
 }
 
-func UpdateUserFCMToken(ctx context.Context, uid interface{}, token string) error {
-	hash := md5.Sum([]byte(token))
-	entry := types.FCMEntry{Token: token, UpdatedAt: time.Now()}
-	_, err := usersCollection().UpdateByID(ctx, uid, bson.D{{"$set", bson.D{{"fcm", bson.D{{hex.EncodeToString(hash[:]), entry}}}}}})
+func UpdateUserFCMToken(ctx context.Context, uid interface{}, token *types.FCMToken) error {
+	entry := types.FCMEntry{Token: token.Token, UpdatedAt: time.Now()}
+	field := fmt.Sprintf("fcm.%x", token.Hash())
+	_, err := usersCollection().UpdateByID(ctx, uid, bson.D{{"$set", bson.D{{field, entry}}}})
 	if err != nil {
 		return err
 	}
@@ -232,4 +230,14 @@ func GetUserFCMTokens(ctx context.Context, uid interface{}) (*types.FCMToken, er
 		return nil, err
 	}
 	return tokens, nil
+}
+
+func DeleteUserFCMToken(ctx context.Context, uid interface{}, token *types.FCMToken) error {
+	collection := usersCollection()
+	field := fmt.Sprintf("fcm.%x", token.Hash())
+	_, err := collection.UpdateByID(ctx, uid, bson.D{{"$unset", bson.D{{field, ""}}}})
+	if err != nil {
+		return err
+	}
+	return nil
 }

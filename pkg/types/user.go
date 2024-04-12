@@ -1,6 +1,7 @@
 package types
 
 import (
+	"crypto/md5"
 	"time"
 )
 
@@ -69,6 +70,11 @@ const (
 type FCMToken struct {
 	Token   string              `json:"fcm"`
 	Entries map[string]FCMEntry `json:"-" bson:"fcm"`
+}
+
+func (t *FCMToken) Hash() []byte {
+	h := md5.Sum([]byte(t.Token))
+	return h[:]
 }
 
 type FCMEntry struct {
