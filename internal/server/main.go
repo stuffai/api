@@ -1,6 +1,8 @@
 package server
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -60,6 +62,9 @@ func New() *echo.Echo {
 	e.GET("/prompts/rand", getPromptRand)
 	e.GET("/jobs/:id", getJobByID)
 	e.GET("/jobs/:id/img", getJobImageURL)
+
+	// HealthCheck
+	e.GET("/", func(c echo.Context) error { return c.String(http.StatusOK, "OK") })
 
 	// Start server
 	return e

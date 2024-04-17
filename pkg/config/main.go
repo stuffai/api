@@ -12,6 +12,9 @@ type obj struct {
 	MongoURI  string `envconfig:"MONGO_URI"`
 	JWTKey    string `envconfig:"JWT_KEY"`
 	ProjectID string `envconfig:"PROJECT_ID"`
+
+	TopicIDGenerate string `envconfig:"TOPIC_GENERATE"`
+	TopicIDNotify   string `envconfig:"TOPIC_NOTIFY"`
 }
 
 func (o obj) MongoHost() string {
@@ -57,11 +60,11 @@ func ProjectID() string {
 }
 
 func PubSubTopicIDGenerate() string {
-	return "generate"
+	return cfg.TopicIDGenerate
 }
 
 func PubSubTopicIDNotify() string {
-	return "notify"
+	return cfg.TopicIDNotify
 }
 
 func MongoURI() string {
