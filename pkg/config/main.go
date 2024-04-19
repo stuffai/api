@@ -13,6 +13,7 @@ type obj struct {
 	JWTKey    string `envconfig:"JWT_KEY"`
 	ProjectID string `envconfig:"PROJECT_ID"`
 
+	BucketName      string `envconfig:"BUCKET_NAME"`
 	TopicIDGenerate string `envconfig:"TOPIC_GENERATE"`
 	TopicIDNotify   string `envconfig:"TOPIC_NOTIFY"`
 }
@@ -23,8 +24,7 @@ func (o obj) MongoHost() string {
 }
 
 var (
-	cfg        obj
-	bucketName string
+	cfg obj
 )
 
 func init() {
@@ -38,7 +38,6 @@ func init() {
 	if cfg.JWTKey == "" {
 		panic("config.init: env.STUFFAI_API_JWT_KEY required")
 	}
-	bucketName = "stuffai-" + Env()
 
 	log.WithField("mongo", cfg.MongoHost()).Info("config.init: loaded")
 }
@@ -52,7 +51,7 @@ func IsLocalEnv() bool {
 }
 
 func BucketName() string {
-	return bucketName
+	return cfg.BucketName
 }
 
 func ProjectID() string {
