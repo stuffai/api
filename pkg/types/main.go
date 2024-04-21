@@ -33,6 +33,7 @@ type ImageUser struct {
 }
 
 type Image struct {
+	NComments  int        `json:"nComments"`
 	User       *ImageUser `json:"user"`
 	Title      string     `json:"title"`
 	Prompt     string     `json:"prompt"`
@@ -50,4 +51,11 @@ type LeaderboardEntry struct {
 	PPURL    string `json:"ppURL" bson:"-"`
 	PPBucket Bucket `json:"-" bson:"ppBucket"`
 	Rank     int    `json:"rank"`
+}
+
+type Comment struct {
+	Text      string    `json:"text" bson:"text"`
+	UserID    string    `json:"userID" bson:"userID"`
+	Username  string    `json:"username" bson:"username"`
+	DTCreated time.Time `json:"dtCreated" bson:"dtCreated"`
 }

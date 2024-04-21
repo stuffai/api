@@ -26,6 +26,10 @@ func New() *echo.Echo {
 	e.GET("/feed", getFeed)
 	e.GET("/users/:name/feed", getUserFeed)
 
+	// comments
+	e.GET("/crafts/:id/comments", jwtMiddleware(getCraftComments, false))
+	e.POST("/crafts/:id/comments", jwtMiddleware(postCraftComments, true))
+
 	// rank
 	e.GET("/rank", getRank)
 	e.POST("/rank", jwtMiddleware(postRank, true))

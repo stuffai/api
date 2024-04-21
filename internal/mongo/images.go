@@ -38,6 +38,16 @@ var viewProjection = bson.A{
 	},
 	bson.D{{"$unwind", "$userDocs"}},
 	bson.D{
+		{"$lookup",
+			bson.D{
+				{"from", "craft_comments"},
+				{"localField", "_id"},
+				{"foreignField", "craftID"},
+				{"as", "comments"},
+			},
+		},
+	},
+	bson.D{
 		{"$project",
 			bson.D{
 				{"user._id", "$userDocs._id"},
@@ -48,6 +58,8 @@ var viewProjection = bson.A{
 				{"dtModified", 1},
 				{"title", "$promptDocs.title"},
 				{"prompt", "$promptDocs.prompt"},
+				{"_id", 1},
+				{"nComments", bson.D{{"$size", "$comments"}}},
 			},
 		},
 	},
