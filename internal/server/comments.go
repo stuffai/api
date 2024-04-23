@@ -39,6 +39,7 @@ func postCraftComments(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	notifID, err := mongo.InsertNotification(ctx, types.NotificationKindCraftComment, types.SignableMap{
+		"bucket":   craft.Bucket,
 		"title":    craft.Title,
 		"username": c.Get("username"),
 		"comment":  comment.Text,
