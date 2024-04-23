@@ -52,6 +52,11 @@ func GetNotifications(ctx context.Context, uid interface{}) ([]*types.Notificati
 	return notifs, nil
 }
 
+func DeleteFriendRequestNotification(ctx context.Context, uid, fuid interface{}) error {
+	_, err := notificationsCollection().DeleteOne(ctx, bson.D{{"userID", uid}, {"data.id", fuid}})
+	return err
+}
+
 func UpdateNotificationRead(ctx context.Context, id string) error {
 	oid, _ := primitive.ObjectIDFromHex(id)
 	_, err := notificationsCollection().UpdateByID(ctx, oid, bson.D{{"$set", bson.D{{"read", true}}}})

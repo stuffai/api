@@ -17,6 +17,7 @@ func friendsCollection() *mongo.Collection {
 }
 
 type friend struct {
+	ID   *primitive.ObjectID `bson:"_id"`
 	From *primitive.ObjectID
 	To   *primitive.ObjectID
 }

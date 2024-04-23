@@ -78,6 +78,15 @@ func postFriendRequests(c echo.Context) error {
 				logger.WithError(err).Error("queue.PublishNotify(friendAccept)")
 				return echo.NewHTTPError(http.StatusInternalServerError, err)
 			}
+			// insert notification to self and delete req notification
+			if _, err = mongo.InsertNotification(ctx, types.NotificationKindFriendAccepted, types.SignableMap{"id": uid, "user": req.User}, uid); err != nil {
+				logger.WithError(err).Error("mongo.insertNotification(friendAccept)")
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
+			}
+			if err := mongo.DeleteFriendRequestNotification(ctx, uid, friendUID); err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, err)
+			}
+
 			return c.JSON(http.StatusOK, "Accept OK")
 		}
 		// Reject friend request
