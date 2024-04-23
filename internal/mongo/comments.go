@@ -37,6 +37,7 @@ func FindComments(ctx context.Context, cid string) ([]*types.Comment, error) {
 				{"text", 1},
 				{"userID", 1},
 				{"username", "$user.username"},
+				{"ppBucket", "$user.profile.ppBucket"},
 				{"dtCreated", 1},
 			}},
 		},

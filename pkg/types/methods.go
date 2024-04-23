@@ -84,3 +84,11 @@ func (n *Notification) GetBucket() Bucket {
 func (n *Notification) SetURL(url string) {
 	n.Data.SetURL(url)
 }
+
+func (c *Comment) GetBucket() Bucket {
+	return c.PPBucket
+}
+
+func (c *Comment) SetURL(url string) {
+	c.PPURL = url
+}

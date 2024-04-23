@@ -59,4 +59,6 @@ type Comment struct {
 	UserID    string    `json:"userID" bson:"userID"`
 	Username  string    `json:"username" bson:"username"`
 	DTCreated time.Time `json:"dtCreated" bson:"dtCreated"`
+	PPURL     string    `json:"ppURL" bson:"-"`
+	PPBucket  Bucket    `json:"-" bson:"ppBucket"`
 }

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/stuff-ai/api/internal/bucket"
 	"github.com/stuff-ai/api/internal/mongo"
 	"github.com/stuff-ai/api/internal/queue"
 	"github.com/stuff-ai/api/pkg/types"
@@ -14,6 +15,9 @@ func getCraftComments(c echo.Context) error {
 	cid := c.Param("id")
 	comments, err := mongo.FindComments(ctx, cid)
 	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	if err := bucket.MaybeSignURLs(ctx, comments); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, comments)
