@@ -10,6 +10,7 @@ type Bucket struct {
 }
 
 type Job struct {
+	UserID     string     `json:"userID"`
 	PromptID   string     `json:"promptID"`
 	Rank       int        `json:"rank"`
 	State      int        `json:"state"`

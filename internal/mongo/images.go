@@ -5,6 +5,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -97,4 +98,10 @@ func FindImages(ctx context.Context) ([]*types.Image, error) {
 
 func FindImagesForUser(ctx context.Context, uid interface{}) ([]*types.Image, error) {
 	return findImages(ctx, bson.D{{"user._id", uid}}, options.Find().SetSort(orderDescending))
+}
+
+func FindImageByID(ctx context.Context, craftID string) (*types.Image, error) {
+	cid, _ := primitive.ObjectIDFromHex(craftID)
+	craft := new(types.Image)
+	return craft, imagesCollection().FindOne(ctx, bson.D{{"_id", cid}}).Decode(craft)
 }

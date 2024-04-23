@@ -10,6 +10,7 @@ const (
 	NotificationKindCraftFailure
 	NotificationKindFriendRequested
 	NotificationKindFriendAccepted
+	NotificationKindCraftComment
 )
 
 type Notification struct {
