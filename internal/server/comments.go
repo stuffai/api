@@ -7,7 +7,6 @@ import (
 	"github.com/stuff-ai/api/internal/bucket"
 	"github.com/stuff-ai/api/internal/mongo"
 	"github.com/stuff-ai/api/internal/queue"
-	"github.com/stuff-ai/api/pkg/types"
 )
 
 func getCraftComments(c echo.Context) error {
@@ -42,16 +41,28 @@ func postCraftComments(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	notifID, err := mongo.InsertNotification(ctx, types.NotificationKindCraftComment, types.SignableMap{
-		"bucket":   craft.Bucket,
-		"title":    craft.Title,
-		"username": c.Get("username"),
-		"comment":  comment.Text,
-	}, craft.User.ID)
+	// get notif listeners for craft and send notifs
+	listeners, err := mongo.FindCraftListeners(ctx, cid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	if err := queue.PublishNotify(ctx, []byte(notifID.Hex())); err != nil {
+	notifIDs, err := mongo.InsertNotificationsForCraftComment(
+		ctx,
+		craft,
+		c.Get("username").(string),
+		comment.Text,
+		listeners,
+		uid,
+	)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	if len(notifIDs) > 0 {
+		queue.PublishNotifyMany(ctx, notifIDs)
+	}
+
+	// insert commenting craft listener at end
+	if err := mongo.MaybeInsertCraftListener(ctx, uid, cid); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusCreated, "Created")

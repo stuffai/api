@@ -32,6 +32,7 @@ func InsertJob(ctx context.Context, userID interface{}, promptID string) (string
 			{"dtCreated", time.Now()},
 			{"dtModified", nil},
 			{"dtDeleted", nil},
+			{"listeners", []interface{}{userID}},
 		},
 	)
 	if err != nil {
@@ -77,4 +78,24 @@ func CountJobsForUser(ctx context.Context, uid interface{}) (int64, error) {
 		return 0, err
 	}
 	return count, nil
+}
+
+func MaybeInsertCraftListener(ctx context.Context, uid interface{}, craftID string) error {
+	cid, _ := primitive.ObjectIDFromHex(craftID)
+	_, err := jobsCollection().UpdateByID(ctx, cid, bson.D{{"$addToSet", bson.D{{"listeners", uid}}}})
+	return err
+}
+
+type jobListeners struct {
+	Listeners []interface{} `bson:"listeners"`
+}
+
+func FindCraftListeners(ctx context.Context, craftID string) ([]interface{}, error) {
+	cid, _ := primitive.ObjectIDFromHex(craftID)
+	obj := new(jobListeners)
+	err := jobsCollection().FindOne(ctx, bson.D{{"_id", cid}}, options.FindOne().SetProjection(bson.D{{"_id", 0}, {"listeners", 1}})).Decode(obj)
+	if err != nil {
+		return nil, err
+	}
+	return obj.Listeners, nil
 }

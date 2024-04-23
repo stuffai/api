@@ -2,8 +2,10 @@ package queue
 
 import (
 	"context"
+	"sync"
 
 	"cloud.google.com/go/pubsub"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/stuff-ai/api/pkg/config"
 )
@@ -45,4 +47,28 @@ func PublishNotify(ctx context.Context, b []byte) error {
 		return err
 	}
 	return nil
+}
+
+func PublishNotifyMany(ctx context.Context, b [][]byte) {
+	n := len(b)
+	t := client.Topic(topicIDNotify)
+	t.PublishSettings.CountThreshold = n
+	t.PublishSettings.ByteThreshold = n * 13
+	results := make([]*pubsub.PublishResult, n)
+	for i, msg := range b {
+		results[i] = t.Publish(ctx, &pubsub.Message{Data: msg})
+	}
+	wg := new(sync.WaitGroup)
+	for _, res := range results {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_, err := res.Get(ctx)
+			if err != nil {
+				log.WithError(err).Error("queue.PublishNotifyMany")
+			}
+		}()
+	}
+	wg.Wait()
 }

@@ -62,3 +62,47 @@ func UpdateNotificationRead(ctx context.Context, id string) error {
 	_, err := notificationsCollection().UpdateByID(ctx, oid, bson.D{{"$set", bson.D{{"read", true}}}})
 	return err
 }
+
+func InsertNotificationsForCraftComment(
+	ctx context.Context,
+	craft *types.Image,
+	username, comment string,
+	listeners []interface{},
+	poster interface{},
+) ([][]byte, error) {
+	docs := []interface{}{}
+	for _, listener := range listeners {
+		// don't notify the poster
+		listenerID := listener.(primitive.ObjectID).Hex()
+		if listenerID == poster.(primitive.ObjectID).Hex() {
+			continue
+		}
+		docs = append(docs, bson.D{
+			{"userID", listener},
+			{"kind", types.NotificationKindCraftComment},
+			{"data", types.SignableMap{
+				"bucket":   craft.Bucket,
+				"title":    craft.Title,
+				"username": username,
+				"comment":  comment,
+				"owner":    craft.User.ID == listenerID,
+			}},
+			{"read", false},
+			{"dtCreated", time.Now()},
+		})
+	}
+	if len(docs) == 0 {
+		return nil, nil
+	}
+	res, err := notificationsCollection().InsertMany(ctx, docs)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert notifIDs to bytes
+	ids := make([][]byte, len(res.InsertedIDs))
+	for i, id := range res.InsertedIDs {
+		ids[i] = []byte(id.(primitive.ObjectID).Hex())
+	}
+	return ids, nil
+}
