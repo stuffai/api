@@ -10,6 +10,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
+	"github.com/patrickmn/go-cache"
 
 	"github.com/stuff-ai/api/pkg/config"
 	"github.com/stuff-ai/api/pkg/types"
@@ -22,19 +23,29 @@ const (
 var (
 	gcsClient   *storage.Client
 	minioClient *minio.Client
+	imgCache    *cache.Cache
 )
 
 func signURLGCS(bucket, object string) (string, error) {
+	// lookup in cache first
+	cached, exists := imgCache.Get(object)
+	if exists {
+		return cached.(string), nil
+	}
+
 	opts := &storage.SignedURLOptions{
 		Scheme:  storage.SigningSchemeV4,
 		Method:  "GET",
-		Expires: time.Now().Add(24 * time.Hour),
+		Expires: time.Now().Add(7 * 24 * time.Hour),
 	}
 
 	u, err := gcsClient.Bucket(bucket).SignedURL(object, opts)
 	if err != nil {
 		return "", fmt.Errorf("Bucket(%q).SignedURL: %w", bucket, err)
 	}
+
+	// store in cache
+	imgCache.Set(object, u, cache.DefaultExpiration)
 	return u, nil
 }
 
@@ -44,6 +55,7 @@ func init() {
 	if gcsClient, err = storage.NewClient(ctx); err != nil {
 		panic(err)
 	}
+	imgCache = cache.New(4*24*time.Hour, 4*24*time.Hour+5*time.Minute)
 }
 
 func SignURL(ctx context.Context, bucket, key string) (string, error) {
