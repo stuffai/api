@@ -9,21 +9,15 @@ import (
 
 	"cloud.google.com/go/storage"
 	"github.com/google/uuid"
-	"github.com/minio/minio-go/v7"
 	"github.com/patrickmn/go-cache"
 
 	"github.com/stuff-ai/api/pkg/config"
 	"github.com/stuff-ai/api/pkg/types"
 )
 
-const (
-	jpgContentType = "image/jpeg"
-)
-
 var (
-	gcsClient   *storage.Client
-	minioClient *minio.Client
-	imgCache    *cache.Cache
+	gcsClient *storage.Client
+	imgCache  *cache.Cache
 )
 
 func signURLGCS(bucket, object string) (string, error) {
