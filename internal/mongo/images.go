@@ -90,7 +90,7 @@ func findImages(ctx context.Context, query interface{}, opt *options.FindOptions
 	return imgs, nil
 }
 
-var orderDescending = bson.D{{"dtCreated", -1}}
+var orderDescending = bson.D{{"dtModified", -1}}
 
 func FindImages(ctx context.Context) ([]*types.Image, error) {
 	return findImages(ctx, bson.D{}, options.Find().SetSort(orderDescending))
