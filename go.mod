@@ -9,7 +9,6 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.6.0
-	github.com/gosimple/slug v1.14.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -36,7 +35,6 @@ require (
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.3 // indirect
-	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
