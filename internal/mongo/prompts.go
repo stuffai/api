@@ -17,7 +17,6 @@ func promptsCollection() *mongo.Collection {
 }
 
 func InsertPrompt(ctx context.Context, prompt *types.Prompt) (string, error) {
-	prompt.Slugify()
 	result, err := promptsCollection().InsertOne(ctx, prompt)
 	if err != nil {
 		return "", err
