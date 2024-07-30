@@ -41,6 +41,9 @@ func init() {
 	if err := initNotificationsCollection(ctx); err != nil {
 		panic("mongo: failed to ensure notifs collection index: " + err.Error())
 	}
+	if err := initLikesCollection(ctx); err != nil {
+		panic("mongo: failed to ensure likes collection index: " + err.Error())
+	}
 }
 
 func Shutdown() {
