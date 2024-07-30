@@ -26,6 +26,10 @@ func New() *echo.Echo {
 	e.GET("/feed", getFeed)
 	e.GET("/users/:name/feed", getUserFeed)
 
+	// likes
+	e.POST("/crafts/:id/likes", jwtMiddleware(postCraftLikes, true))
+	e.DELETE("/crafts/:id/likes", jwtMiddleware(deleteCraftLikes, true))
+
 	// comments
 	e.GET("/crafts/:id/comments", jwtMiddleware(getCraftComments, false))
 	e.POST("/crafts/:id/comments", jwtMiddleware(postCraftComments, true))

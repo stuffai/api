@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,13 +18,13 @@ func likesCollection() *mongo.Collection {
 type like struct {
 	ID      *primitive.ObjectID `bson:"_id"`
 	UserID  *primitive.ObjectID
-	ImageID *primitive.ObjectID
+	CraftID *primitive.ObjectID
 }
 
 func initLikesCollection(ctx context.Context) error {
 	_, err := likesCollection().Indexes().CreateMany(ctx, []mongo.IndexModel{
-		{Keys: bson.D{{"image", 1}}, Options: options.Index().SetUnique(false)},
-		{Keys: bson.D{{"user", 1}, {"image", 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{"craftID", 1}}, Options: options.Index().SetUnique(false)},
+		{Keys: bson.D{{"userID", 1}, {"craftID", 1}}, Options: options.Index().SetUnique(true)},
 	})
 	if err != nil {
 		return err
@@ -32,11 +33,27 @@ func initLikesCollection(ctx context.Context) error {
 	return nil
 }
 
-// func InsertLike() error {
-// 	//
-// 	return nil
-// }
+func bsonDUserLikeCraft(coid primitive.ObjectID, uid interface{}) bson.D {
+	return bson.D{
+		{"craftID", coid}, {"userID", uid}, {"dtCreated", time.Now()},
+	}
+}
 
-// func DeleteLike() error {
-// 	return nil
-// }
+func bsonDDeleteUserLikeCraft(coid primitive.ObjectID, uid interface{}) bson.D {
+	return bson.D{
+		{"craftID", coid},
+		{"userID", uid},
+	}
+}
+
+func InsertLike(ctx context.Context, uid interface{}, cid string) error {
+	coid, _ := primitive.ObjectIDFromHex(cid)
+	_, err := likesCollection().InsertOne(ctx, bsonDUserLikeCraft(coid, uid))
+	return err
+}
+
+func DeleteLike(ctx context.Context, uid interface{}, cid string) error {
+	coid, _ := primitive.ObjectIDFromHex(cid)
+	_, err := likesCollection().DeleteOne(ctx, bsonDDeleteUserLikeCraft(coid, uid))
+	return err
+}
