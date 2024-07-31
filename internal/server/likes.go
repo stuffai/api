@@ -12,11 +12,12 @@ func postCraftLikes(c echo.Context) error {
 	cid := c.Param("id")
 	uid := c.Get("uid")
 
-	if err := mongo.InsertLike(ctx, uid, cid); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
 	_, err := mongo.FindImageByID(ctx, cid)
 	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err)
+	}
+
+	if err := mongo.InsertLike(ctx, uid, cid); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
