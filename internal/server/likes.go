@@ -40,7 +40,5 @@ func deleteCraftLikes(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	// TODO: handle notifications
-
 	return c.JSON(http.StatusOK, "OK")
 }
