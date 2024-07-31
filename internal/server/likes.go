@@ -31,11 +31,12 @@ func deleteCraftLikes(c echo.Context) error {
 	cid := c.Param("id")
 	uid := c.Get("uid")
 
-	if err := mongo.DeleteLike(ctx, uid, cid); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
 	_, err := mongo.FindImageByID(ctx, cid)
 	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, err)
+	}
+
+	if err := mongo.DeleteLike(ctx, uid, cid); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
