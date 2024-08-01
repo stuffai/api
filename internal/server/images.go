@@ -15,7 +15,7 @@ import (
 
 func getFeed(c echo.Context) error {
 	ctx := c.Request().Context()
-	feed, err := mongo.FindImages(ctx)
+	feed, err := mongo.FindImagesAggregate(ctx, c.Get("uid"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

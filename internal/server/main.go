@@ -23,7 +23,7 @@ func New() *echo.Echo {
 	// Public
 
 	// feed
-	e.GET("/feed", getFeed)
+	e.GET("/feed", jwtMiddleware(getFeed, false))
 	e.GET("/users/:name/feed", getUserFeed)
 
 	// likes
