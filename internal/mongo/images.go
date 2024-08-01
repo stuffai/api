@@ -49,6 +49,16 @@ var viewProjection = bson.A{
 		},
 	},
 	bson.D{
+		{"$lookup",
+			bson.D{
+				{"from", "craft_likes"},
+				{"localField", "_id"},
+				{"foreignField", "craftID"},
+				{"as", "likes"},
+			},
+		},
+	},
+	bson.D{
 		{"$project",
 			bson.D{
 				{"user._id", "$userDocs._id"},
@@ -61,6 +71,7 @@ var viewProjection = bson.A{
 				{"prompt", "$promptDocs.prompt"},
 				{"_id", 1},
 				{"nComments", bson.D{{"$size", "$comments"}}},
+				{"nLikes", bson.D{{"$size", "$likes"}}},
 			},
 		},
 	},
@@ -68,6 +79,7 @@ var viewProjection = bson.A{
 
 func createImagesView(ctx context.Context) error {
 	log.Info("mongo.createImagesView")
+	imagesCollection().Drop(ctx)
 	return db().CreateView(ctx, "images", "jobs", viewProjection, nil)
 }
 
