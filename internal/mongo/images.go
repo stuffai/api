@@ -12,10 +12,18 @@ import (
 	"github.com/stuff-ai/api/pkg/types"
 )
 
-func FindImagesAggregate(ctx context.Context, uid interface{}) ([]*types.Image, error) {
-	log.Info("userID IN MONGO", uid)
+func FindImagesAggregate(ctx context.Context, authenticatedUserId, uid interface{}) ([]*types.Image, error) {
+	var pipeline mongo.Pipeline
 
-	cur, err := jobsCollection().Aggregate(ctx, bson.A{
+	if uid != nil {
+		pipeline = append(pipeline, bson.D{
+			{"$match", bson.D{
+				{"userID", uid},
+			}},
+		})
+	}
+
+	pipeline = append(pipeline,
 		bson.D{
 			{"$match", bson.D{{"state", 1}}},
 		},
@@ -67,10 +75,10 @@ func FindImagesAggregate(ctx context.Context, uid interface{}) ([]*types.Image, 
 					{"from", "craft_likes"},
 					{"let", bson.D{{"craftID", "$_id"}}},
 					{"pipeline", mongo.Pipeline{
-						{{"$match", bson.D{
+						bson.D{{"$match", bson.D{
 							{"$expr", bson.D{
 								{"$and", bson.A{
-									bson.D{{"$eq", bson.A{"$userID", uid}}},
+									bson.D{{"$eq", bson.A{"$userID", authenticatedUserId}}},
 									bson.D{{"$eq", bson.A{"$craftID", "$$craftID"}}},
 								}},
 							}},
@@ -103,7 +111,10 @@ func FindImagesAggregate(ctx context.Context, uid interface{}) ([]*types.Image, 
 				},
 			},
 		},
-	})
+	)
+
+	cur, err := jobsCollection().Aggregate(ctx, pipeline)
+
 	if err != nil {
 		return nil, err
 	}

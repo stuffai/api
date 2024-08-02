@@ -15,7 +15,7 @@ import (
 
 func getFeed(c echo.Context) error {
 	ctx := c.Request().Context()
-	feed, err := mongo.FindImagesAggregate(ctx, c.Get("uid"))
+	feed, err := mongo.FindImagesAggregate(ctx, c.Get("uid"), nil)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -32,7 +32,8 @@ func getUserFeed(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, err.Error())
 	}
-	feed, err := mongo.FindImagesForUser(ctx, uid)
+	// feed, err := mongo.FindImagesForUser(ctx, uid)
+	feed, err := mongo.FindImagesAggregate(ctx, c.Get("uid"), uid)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

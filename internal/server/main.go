@@ -24,7 +24,7 @@ func New() *echo.Echo {
 
 	// feed
 	e.GET("/feed", jwtMiddleware(getFeed, false))
-	e.GET("/users/:name/feed", getUserFeed)
+	e.GET("/users/:name/feed", jwtMiddleware(getUserFeed, false))
 
 	// likes
 	e.POST("/crafts/:id/likes", jwtMiddleware(postCraftLikes, true))
