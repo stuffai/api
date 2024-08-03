@@ -111,6 +111,11 @@ func FindImagesAggregate(ctx context.Context, authenticatedUserId, uid interface
 				},
 			},
 		},
+		bson.D{
+			{"$sort", bson.D{
+				{"dtModified", -1},
+			}},
+		},
 	)
 
 	cur, err := jobsCollection().Aggregate(ctx, pipeline)
